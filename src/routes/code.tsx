@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { AppWindow, Check, Code2, Copy, Download, Eye, RotateCw } from "lucide-react";
-import { AceMateLogo } from "@/components/AceMateLogo";
 import { TopBar } from "@/components/TopBar";
 import { Composer, ModeToggle, ModelMenu } from "@/components/Composer";
-import { ChatMessage } from "@/components/ChatMessage";
+import { ChatMessage, questionNumbers } from "@/components/ChatMessage";
 import { Markdown } from "@/components/Markdown";
 import { messageText, reasoningText, ThinkingActivity } from "@/components/ai/AiResponseActivity";
 import { AceMateOrb } from "@/components/ai/AceMateOrb";
@@ -284,28 +283,26 @@ export function CodePage() {
 
   const showEmpty = messages.length === 0;
   const canSend = !!input.trim() && !isLoading;
+  const numbers = questionNumbers(messages);
 
   const conversationPane = (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col">
       <div ref={scrollerRef} className="scrollbar-thin min-h-0 flex-1 overflow-y-auto">
         {showEmpty ? (
-          <div className="mx-auto flex min-h-full max-w-[560px] flex-col justify-center px-5 py-10">
-            <div className="flex items-center gap-3">
-              <AceMateLogo size={26} />
-              <h1 className="font-serif text-[30px] font-normal leading-tight text-[var(--fg)]">
-                What should we build?
-              </h1>
-            </div>
+          <div className="notebook notebook-draw flex min-h-full flex-col justify-center py-10">
+            <h1 className="font-display text-[30px] font-bold leading-tight text-[var(--fg)] sm:text-[36px]">
+              What should we build?
+            </h1>
             <p className="mt-2 text-[14.5px] text-[var(--fg-muted)]">
-              Describe a page, app, or game — it renders live.
+              Describe a page, app or game. It renders live next to the chat.
             </p>
-            <ul className="mt-6 overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--surface)]">
-              {STARTERS.map((s, i) => (
-                <li key={s} className={i ? "border-t border-[var(--line)]" : ""}>
+            <ul className="ruled-list mt-6 border-y border-[var(--line)]">
+              {STARTERS.map((s) => (
+                <li key={s}>
                   <button
                     type="button"
                     onClick={() => submit(s)}
-                    className="w-full px-4 py-3 text-left text-[14px] text-[var(--fg)] transition-colors hover:bg-[var(--surface-hover)]"
+                    className="w-full px-1 py-3 text-left text-[14.5px] text-[var(--fg)] transition-colors hover:bg-[var(--surface-hover)]"
                   >
                     {s}
                   </button>
@@ -315,13 +312,14 @@ export function CodePage() {
           </div>
         ) : (
           <div
-            className="mx-auto flex max-w-[736px] flex-col gap-6 px-4 pb-6 pt-4 sm:px-5"
+            className="notebook flex min-h-full flex-col gap-4 pb-6 pt-4"
             style={{ fontSize: TEXT_SIZE_PX[settings.textSize] }}
           >
             {messages.map((m) => (
               <ChatMessage
                 key={m.id}
                 message={m}
+                number={numbers.get(m.id)}
                 thoughtSeconds={thoughtDurations[m.id]}
                 writing={status === "streaming" && currentAssistant?.id === m.id && Boolean(currentText)}
                 renderBody={renderBody}
@@ -339,21 +337,26 @@ export function CodePage() {
         )}
       </div>
 
-      <div className="shrink-0 px-3 pb-2 sm:px-4">
-        <div className="mx-auto max-w-[736px]">
-          <Composer
-            value={input}
-            onChange={setInput}
-            onSubmit={() => submit(input)}
-            onStop={stop}
-            busy={isLoading}
-            canSend={canSend}
-            placeholder="Describe what to build…"
-            inputRef={inputRef}
-            trailing={<ModelMenu model={model} onModel={setModel} />}
-          />
-          <p className="py-2 text-center text-[11.5px] text-[var(--fg-faint)]">
-            AceMate can make mistakes — double-check important answers.
+      <div className="shrink-0">
+        <div className="notebook">
+          <div className="relative">
+            <span className="margin-note" style={{ top: "0.8rem" }} aria-hidden="true">
+              Q{numbers.size + 1}
+            </span>
+            <Composer
+              value={input}
+              onChange={setInput}
+              onSubmit={() => submit(input)}
+              onStop={stop}
+              busy={isLoading}
+              canSend={canSend}
+              placeholder={showEmpty ? "Describe what to build" : "Ask for a change"}
+              inputRef={inputRef}
+              trailing={<ModelMenu model={model} onModel={setModel} />}
+            />
+          </div>
+          <p className="py-2 text-[11.5px] text-[var(--fg-faint)]">
+            AceMate can get things wrong. Check the page before you share it.
           </p>
         </div>
       </div>

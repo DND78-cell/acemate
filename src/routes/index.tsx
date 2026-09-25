@@ -1,13 +1,13 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { BookOpen, Code2, GraduationCap, PenLine, Plus, ScanText, X, type LucideIcon } from "lucide-react";
-import { AceMateLogo } from "@/components/AceMateLogo";
+import { BookOpen, Lightbulb, ListChecks, PenLine, Plus, ScanText, Sigma, X, type LucideIcon } from "lucide-react";
 import { useShell } from "@/components/AppShell";
 import { TopBar } from "@/components/TopBar";
 import { Composer, ModeToggle, ModelMenu } from "@/components/Composer";
 import { CornerButton } from "@/components/ui/corner-button";
 import { cn } from "@/lib/utils";
-import { ChatMessage } from "@/components/ChatMessage";
+import { ChatMessage, questionNumbers } from "@/components/ChatMessage";
+import { ANSWER_DISCLAIMER, DateStamp } from "@/components/Notebook";
 import { messageText, reasoningText, ThinkingActivity } from "@/components/ai/AiResponseActivity";
 import { useAuth } from "@/hooks/use-auth";
 import { saveChat, loadChat } from "@/lib/persistence";
@@ -36,45 +36,55 @@ type Starter = {
 
 const STARTERS: Starter[] = [
   {
+    key: "explain",
+    label: "Explain",
+    icon: Lightbulb,
+    prompts: [
+      "Explain black holes simply",
+      "Explain photosynthesis step by step",
+      "Explain Newton's three laws with everyday examples",
+    ],
+  },
+  {
+    key: "quiz",
+    label: "Quiz me",
+    icon: ListChecks,
+    prompts: [
+      "Quiz me on world capitals",
+      "Give me 5 multiple-choice questions on the French Revolution",
+      "Test me on the first 20 elements of the periodic table",
+    ],
+  },
+  {
+    key: "solve",
+    label: "Solve",
+    icon: Sigma,
+    prompts: [
+      "Solve 3x + 7 = 22 and show every step",
+      "How do I find a triangle's area from its three sides?",
+      "Is this right? 12% of 250 = 25",
+    ],
+  },
+  {
     key: "write",
     label: "Write",
     icon: PenLine,
     prompts: [
-      "Write a birthday message for my friend",
-      "Draft a polite follow-up email to my teacher",
-      "Help me write the opening of a short story",
-    ],
-  },
-  {
-    key: "learn",
-    label: "Learn",
-    icon: GraduationCap,
-    prompts: [
-      "Explain black holes simply",
-      "Quiz me on world capitals",
-      "Explain photosynthesis step by step",
-    ],
-  },
-  {
-    key: "code",
-    label: "Code",
-    icon: Code2,
-    prompts: [
-      "Help me fix a Python error",
-      "Explain what a REST API is, with an example",
-      "Write a function that checks whether a word is a palindrome",
+      "Help me outline an essay on climate change",
+      "Draft a polite email to my teacher about a missed class",
+      "Suggest three strong opening lines for an essay on friendship",
     ],
   },
   { key: "notes", label: "Chapter notes", icon: ScanText, to: "/notes" },
   { key: "study", label: "Study companion", icon: BookOpen, to: "/companion" },
 ];
 
-/** Starter buttons take the theme's own main color instead of neon yellow. */
+/** Starter buttons take the theme's own main color. */
 const STARTER_ACCENT: Record<string, string> = {
-  graphite: "#ececec",
+  graphite: "#e8e9ec",
   ocean: "#e6eef7",
-  warm: "#f0ebe5",
-  light: "#e2e2df",
+  chalk: "#edf0e7",
+  light: "#ffffff",
 };
 
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
@@ -381,7 +391,7 @@ export function ChatPage() {
         onStop={stop}
         busy={isLoading}
         canSend={canSend}
-        placeholder={showEmpty ? "How can I help you today?" : "Reply to AceMate…"}
+        placeholder={showEmpty ? "Ask a question or add a photo" : "Ask your next question"}
         inputRef={inputRef}
         top={
           attachment && (
@@ -443,8 +453,8 @@ export function ChatPage() {
 
   const openStarterDef = STARTERS.find((s) => s.key === openStarter);
   const starters = (
-    <div className="mt-4">
-      <div className="flex flex-wrap justify-center">
+    <div className="mt-5">
+      <div className="-ml-1.5 flex flex-wrap">
         {STARTERS.map((s) => {
           const Icon = s.icon;
           const active = s.key === openStarter;
@@ -467,13 +477,13 @@ export function ChatPage() {
         })}
       </div>
       {openStarterDef?.prompts && (
-        <ul className="mt-3 overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--surface)]">
-          {openStarterDef.prompts.map((p, i) => (
-            <li key={p} className={i ? "border-t border-[var(--line)]" : ""}>
+        <ul className="ruled-list mt-4 border-y border-[var(--line)]">
+          {openStarterDef.prompts.map((p) => (
+            <li key={p}>
               <button
                 type="button"
                 onClick={() => submit(p)}
-                className="w-full px-4 py-3 text-left text-[14px] text-[var(--fg)] transition-colors hover:bg-[var(--surface-hover)]"
+                className="w-full px-1 py-3 text-left text-[14.5px] text-[var(--fg)] transition-colors hover:bg-[var(--surface-hover)]"
               >
                 {p}
               </button>
@@ -485,57 +495,75 @@ export function ChatPage() {
   );
 
   const heading = (
-    <h1 className="flex items-center justify-center gap-3 text-center">
-      <AceMateLogo size={shell.isDesktop ? 34 : 28} />
-      <span className="font-serif text-[32px] font-normal leading-tight text-[var(--fg)] sm:text-[40px]">
-        {greeting(user?.name ?? "")}
+    <div>
+      <p className="text-[15px] text-[var(--fg-muted)]">{greeting(user?.name ?? "")}</p>
+      <h1 className="font-display mt-1.5 text-[34px] font-bold leading-[1.04] text-[var(--fg)] sm:text-[46px]">
+        What are we studying today?
+      </h1>
+    </div>
+  );
+
+  // The composer is where the next question gets written, so its number sits in the margin.
+  const numberedComposer = (placement: "up" | "down", n: number) => (
+    <div className="relative">
+      <span className="margin-note" style={{ top: "0.8rem" }} aria-hidden="true">
+        Q{n}
       </span>
-    </h1>
+      {composer(placement)}
+    </div>
   );
 
   if (showEmpty) {
     return (
       <div className="flex h-full flex-col">
         <TopBar />
-        {shell.isDesktop ? (
-          <div className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-y-auto px-6 pb-[12vh]">
-            <div className="w-full max-w-[680px]">
-              <div className="mb-8">{heading}</div>
-              <div className="mb-3 flex flex-col gap-2 empty:hidden">{notices}</div>
-              {composer("down")}
-              {starters}
+        <div className="scrollbar-thin min-h-0 flex-1 overflow-y-auto">
+          <div className="notebook notebook-draw flex min-h-full flex-col">
+            <div className="flex justify-end">
+              <DateStamp />
             </div>
-          </div>
-        ) : (
-          <>
-            <div className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-y-auto px-4">
-              <div className="w-full">
+            {shell.isDesktop ? (
+              <div className="pb-[14vh] pt-[9vh]">
+                {heading}
+                <div className="mt-7 flex flex-col gap-2 empty:hidden">{notices}</div>
+                <div className="mt-7">{numberedComposer("down", 1)}</div>
+                {starters}
+              </div>
+            ) : (
+              <div className="flex flex-1 flex-col justify-center py-8">
                 {heading}
                 {starters}
               </div>
-            </div>
-            <div className="shrink-0 px-3 pb-3">
+            )}
+          </div>
+        </div>
+        {!shell.isDesktop && (
+          <div className="shrink-0">
+            <div className="notebook pb-3">
               <div className="mb-2 flex flex-col gap-2 empty:hidden">{notices}</div>
-              {composer("up")}
+              {numberedComposer("up", 1)}
             </div>
-          </>
+          </div>
         )}
       </div>
     );
   }
+
+  const numbers = questionNumbers(messages);
 
   return (
     <div className="flex h-full flex-col">
       <TopBar title={titleOf(messages)} />
       <div ref={scrollerRef} className="scrollbar-thin min-h-0 flex-1 overflow-y-auto">
         <div
-          className="mx-auto flex max-w-[736px] flex-col gap-6 px-4 pb-8 pt-4 sm:px-6"
+          className="notebook flex min-h-full flex-col gap-4 pb-8 pt-4"
           style={{ fontSize: TEXT_SIZE_PX[settings.textSize] }}
         >
           {messages.map((m) => (
             <ChatMessage
               key={m.id}
               message={m}
+              number={numbers.get(m.id)}
               thoughtSeconds={thoughtDurations[m.id]}
               writing={status === "streaming" && currentAssistant?.id === m.id && Boolean(currentText)}
             />
@@ -546,12 +574,10 @@ export function ChatPage() {
           <div className="flex flex-col gap-2 empty:hidden">{notices}</div>
         </div>
       </div>
-      <div className="shrink-0 px-3 pb-2 sm:px-4">
-        <div className="mx-auto max-w-[736px]">
-          {composer("up")}
-          <p className="py-2 text-center text-[11.5px] text-[var(--fg-faint)]">
-            AceMate can make mistakes — double-check important answers.
-          </p>
+      <div className="shrink-0">
+        <div className="notebook">
+          {numberedComposer("up", numbers.size + 1)}
+          <p className="py-2 text-[11.5px] text-[var(--fg-faint)]">{ANSWER_DISCLAIMER}</p>
         </div>
       </div>
     </div>

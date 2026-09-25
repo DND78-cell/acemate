@@ -3,11 +3,11 @@ import { useSettings } from "@/lib/settings";
 import { AI_ACTIVITY, type AiActivity } from "./aiActivity";
 
 // Explicit theme mapping — the library's "auto" mode expects data-theme="dark"|"light",
-// but AceMate uses "ocean" | "warm" | "light".
+// but AceMate uses its own theme names.
 const ORB_THEME: Record<string, OrbTheme> = {
   graphite: "dark",
   ocean: "dark",
-  warm: "dark",
+  chalk: "dark",
   light: "light",
 };
 

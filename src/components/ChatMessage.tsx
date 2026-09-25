@@ -5,17 +5,24 @@ import { Markdown, useCopy } from "@/components/Markdown";
 import { reasoningText, ThoughtDisclosure } from "@/components/ai/AiResponseActivity";
 import { AceMateOrb } from "@/components/ai/AceMateOrb";
 
+/** Questions longer than this read as a pasted passage, not a heading. */
+const LONG_QUESTION = 240;
+
 /**
- * One turn of a conversation. The person's messages sit in a bubble on the
- * right; AceMate's answers read as plain text across the column.
+ * One turn of a conversation, laid out like an exercise book: the person's
+ * question is written as a numbered heading (the number sits in the page
+ * margin), and AceMate's answer follows it, marked "Ans".
  */
 export function ChatMessage({
   message,
+  number,
   thoughtSeconds,
   writing,
   renderBody,
 }: {
   message: UIMessage;
+  /** The question's number in this conversation (person's turns only). */
+  number?: number;
   thoughtSeconds?: number;
   writing: boolean;
   /** Draw an answer's text another way (the Code screen hides website code). */
@@ -29,20 +36,21 @@ export function ChatMessage({
       p.type === "file" && p.mediaType.startsWith("image/") ? [p.url] : [],
     );
     return (
-      <div className="flex flex-col items-end gap-2">
+      <div className="relative flex flex-col items-start gap-3 pt-2 not-first:mt-7">
+        {number != null && (
+          <span className="margin-note" style={{ top: "0.5rem" }}>
+            Q{number}
+          </span>
+        )}
+        {text && <div className={`question ${text.length > LONG_QUESTION ? "is-long" : ""}`}>{text}</div>}
         {images.map((url, i) => (
           <img
             key={i}
             src={url}
             alt="Attached image"
-            className="max-h-[260px] max-w-[70%] rounded-2xl border border-[var(--line)] object-cover"
+            className="max-h-[240px] max-w-full rounded-xl border border-[var(--line)] object-cover sm:max-w-[70%]"
           />
         ))}
-        {text && (
-          <div className="max-w-[85%] whitespace-pre-wrap rounded-[20px] bg-[var(--bubble)] px-4 py-2.5 leading-relaxed text-[var(--fg)] sm:max-w-[75%]">
-            {text}
-          </div>
-        )}
       </div>
     );
   }
@@ -54,7 +62,10 @@ export function ChatMessage({
       {thoughtSeconds != null && (
         <ThoughtDisclosure seconds={thoughtSeconds} reasoning={reasoningText(message.parts)} />
       )}
-      <div className="w-full text-[var(--fg)]">
+      <div className="relative w-full text-[var(--fg)]">
+        <span className="margin-note is-answer" style={{ lineHeight: "1.6rem" }} aria-hidden="true">
+          Ans
+        </span>
         {renderBody ? renderBody(text, writing) : <Markdown text={text} />}
       </div>
       {writing ? (
@@ -66,7 +77,7 @@ export function ChatMessage({
             onClick={() => copy(text)}
             aria-label={copied ? "Copied" : "Copy answer"}
             title={copied ? "Copied" : "Copy"}
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--fg-faint)] transition-colors hover:bg-[var(--surface-hover)] hover:text-[var(--fg)]"
+            className="-ml-2 flex h-8 w-8 items-center justify-center rounded-lg text-[var(--fg-faint)] transition-colors hover:bg-[var(--surface-hover)] hover:text-[var(--fg)]"
           >
             {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
           </button>
@@ -74,4 +85,12 @@ export function ChatMessage({
       )}
     </div>
   );
+}
+
+/** Numbers each of the person's messages 1, 2, 3… in conversation order. */
+export function questionNumbers(messages: UIMessage[]): Map<string, number> {
+  const numbers = new Map<string, number>();
+  let n = 0;
+  for (const m of messages) if (m.role === "user") numbers.set(m.id, ++n);
+  return numbers;
 }

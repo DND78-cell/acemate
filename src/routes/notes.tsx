@@ -1,4 +1,5 @@
 import { TopBar } from "@/components/TopBar";
+import { DateStamp } from "@/components/Notebook";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Camera,
@@ -348,33 +349,36 @@ export function NotesPage() {
     <div className="flex h-full flex-col">
       <TopBar />
       <div className="scrollbar-thin min-h-0 flex-1 overflow-y-auto">
-    <div className="mx-auto flex w-full max-w-[640px] flex-col px-5">
-      <h1 className="font-serif px-1 pt-4 pb-2 text-[34px] font-normal leading-tight text-[var(--fg)]">
-        Chapter Notes
+    <div className="notebook notebook-draw flex min-h-full flex-col">
+      <div className="flex justify-end">
+        <DateStamp />
+      </div>
+      <div className="flex w-full max-w-[620px] flex-col">
+      <h1 className="font-display pt-5 pb-2 text-[34px] font-bold leading-tight text-[var(--fg)] sm:text-[40px]">
+        Chapter notes
       </h1>
-      <p className="px-1 pb-7 text-[14.5px] text-[var(--fg-muted)]">
+      <p className="pb-8 text-[14.5px] text-[var(--fg-muted)]">
         Snap the pages of a chapter and I'll turn them into a summary,
-        flashcards, and a quiz.
+        flashcards and a quiz.
       </p>
 
       {!result && (
         <>
-          <label className="mb-2 px-1 text-[13px] font-medium text-[var(--fg-muted)]">
-            Subject / chapter name
+          <label htmlFor="notes-subject" className="label-mono">
+            Subject
           </label>
-          <div className="glass mb-6 rounded-xl p-1.5 focus-within:border-[var(--line-strong)]">
-            <input
-              value={subject}
-              onChange={(e) => setSubject(e.target.value)}
-              disabled={isBusy}
-              placeholder="e.g. Biology — Chapter 4: Photosynthesis"
-              className="w-full bg-transparent px-2 py-2 text-[15px] text-[color:var(--ice)] placeholder:text-[color:var(--ice-dim)]/70 focus:outline-none disabled:opacity-60"
-            />
-          </div>
+          <input
+            id="notes-subject"
+            value={subject}
+            onChange={(e) => setSubject(e.target.value)}
+            disabled={isBusy}
+            placeholder="Biology, chapter 4: Photosynthesis"
+            className="mb-8 w-full border-b border-[var(--line-strong)] bg-transparent px-0.5 pb-2 pt-1.5 text-[17px] text-[var(--fg)] transition-colors placeholder:text-[var(--fg-faint)] focus:border-[var(--margin)] focus:outline-none focus-visible:outline-none disabled:opacity-60"
+          />
 
-          <label className="mb-2 px-1 text-[13px] font-medium text-[var(--fg-muted)]">
-            Pages ({pages.length}/{maxImages})
-          </label>
+          <div className="label-mono mb-2.5">
+            Pages <span className="tabular-nums">{pages.length}/{maxImages}</span>
+          </div>
 
           <input
             ref={cameraRef}
@@ -565,6 +569,7 @@ export function NotesPage() {
 
 
       <div className="pb-10" />
+      </div>
     </div>
       </div>
     </div>
@@ -594,11 +599,8 @@ function ResultView({
 
   return (
     <div className="flex flex-col">
-      <div className="mb-1.5 flex items-center gap-2 text-[13px] text-[var(--fg-muted)]">
-        <AceMateLogo size={14} />
-        AceMate notes
-      </div>
-      <div className="font-serif mb-5 text-[26px] font-normal leading-tight text-[var(--fg)]">
+      <div className="label-mono mb-2">{subject.trim() ? `Notes · ${subject.trim()}` : "Notes"}</div>
+      <div className="font-display mb-5 text-[26px] font-bold leading-tight text-[var(--fg)]">
         {result.title}
       </div>
 
@@ -690,7 +692,7 @@ function SummaryPanel({
     <div className="glass rounded-xl p-6 sm:p-7">
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
-          <h2 className="font-serif text-[24px] font-normal leading-tight text-[var(--fg)]">
+          <h2 className="font-display text-[24px] font-bold leading-tight text-[var(--fg)]">
             {title}
           </h2>
           {subject.trim() && (
@@ -847,7 +849,7 @@ function QuizPanel({
     );
     return (
       <div className="glass flex flex-col items-center rounded-2xl px-5 py-8 text-center">
-        <div className="font-serif text-[36px] font-normal text-[var(--fg)]">
+        <div className="font-display text-[36px] font-bold text-[var(--fg)]">
           {score} / {quiz.length}
         </div>
         <div className="mt-1 text-[14px] text-[color:var(--ice-dim)]">

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 export type ResponseStyle = "concise" | "balanced" | "detailed";
 export type TextSize = "small" | "medium" | "large";
-export type Theme = "graphite" | "ocean" | "warm" | "light";
+export type Theme = "graphite" | "ocean" | "chalk" | "light";
 export type ModelId = "aceOne" | "aceUltra";
 export type EffortMode = "quick" | "balanced" | "max";
 
@@ -55,8 +55,11 @@ function isEffort(v: unknown): v is EffortMode {
 }
 
 function isTheme(v: unknown): v is Theme {
-  return v === "graphite" || v === "ocean" || v === "warm" || v === "light";
+  return v === "graphite" || v === "ocean" || v === "chalk" || v === "light";
 }
+
+// "Warm" became "Chalkboard" in the exercise-book redesign.
+const renamedTheme = (v: string | null) => (v === "warm" ? "chalk" : v);
 
 function read(): Settings {
   if (typeof window === "undefined") return DEFAULTS;
@@ -65,7 +68,7 @@ function read(): Settings {
     const parsed = raw
       ? (JSON.parse(raw) as Partial<Settings> & { model?: unknown; effort?: unknown })
       : {};
-    const savedTheme = window.localStorage.getItem(THEME_KEY);
+    const savedTheme = renamedTheme(window.localStorage.getItem(THEME_KEY));
     return {
       responseStyle:
         parsed.responseStyle === "concise" ||

@@ -39,10 +39,10 @@ const RESPONSE_STYLE_OPTIONS: {
 ];
 
 const THEME_OPTIONS: { value: Theme; label: string; desc: string }[] = [
-  { value: "graphite", label: "Graphite", desc: "Neutral charcoal greys with silver details." },
-  { value: "ocean", label: "Ocean", desc: "Deep navy with crisp ice-white details." },
-  { value: "warm", label: "Warm", desc: "Warm charcoal with terracotta accents." },
-  { value: "light", label: "Light", desc: "Soft cream with dark charcoal text." },
+  { value: "graphite", label: "Graphite", desc: "Pencil-lead greys with a red margin line." },
+  { value: "ocean", label: "Ocean", desc: "Deep navy with a coral margin line." },
+  { value: "chalk", label: "Chalkboard", desc: "Green-black slate with chalk-white text." },
+  { value: "light", label: "Paper", desc: "Notebook white with blue-black ink." },
 ];
 
 const TEXT_SIZE_OPTIONS: { value: TextSize; label: string; desc: string }[] = [
@@ -92,7 +92,7 @@ export function SettingsPage() {
 
       {view === "root" && (
         <>
-          <h1 className="font-serif px-1 pt-4 pb-6 text-[34px] font-normal leading-tight text-[var(--fg)]">
+          <h1 className="font-display px-1 pt-4 pb-6 text-[34px] font-bold leading-tight text-[var(--fg)]">
             Settings
           </h1>
 
@@ -238,7 +238,7 @@ export function SettingsPage() {
 
 function SectionLabel({ children }: { children: ReactNode }) {
   return (
-    <div className="mt-7 mb-1.5 px-3 text-[13px] font-medium text-[var(--fg-muted)] first:mt-2">
+    <div className="label-mono mt-8 mb-2 px-3 first:mt-2">
       {children}
     </div>
   );
@@ -305,7 +305,7 @@ function ChoiceView<T extends string>({
 }) {
   return (
     <>
-      <h1 className="font-serif px-1 pt-4 pb-6 text-[34px] font-normal leading-tight text-[var(--fg)]">
+      <h1 className="font-display px-1 pt-4 pb-6 text-[34px] font-bold leading-tight text-[var(--fg)]">
         {title}
       </h1>
       <div className="flex flex-col gap-1">
@@ -361,10 +361,10 @@ function AboutView() {
       <div className="logo-glow mb-6">
         <AceMateLogo size={96} glow />
       </div>
-      <h1 className="font-serif text-[32px] font-normal text-[var(--fg)]">AceMate</h1>
+      <h1 className="font-display text-[32px] font-bold text-[var(--fg)]">AceMate</h1>
       <p className="mt-1 text-sm text-[color:var(--ice-dim)]">Version 1.0</p>
       <p className="mt-6 max-w-xs text-base text-[color:var(--ice)]/90">
-        Ask anything.
+        Your study partner.
       </p>
     </div>
   );

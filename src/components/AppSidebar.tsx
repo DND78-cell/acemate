@@ -4,9 +4,9 @@ import {
   BookOpen,
   Code2,
   PanelLeftClose,
+  Plus,
   ScanText,
   Settings as SettingsIcon,
-  SquarePen,
   LogIn,
   UserRound,
 } from "lucide-react";
@@ -20,7 +20,6 @@ const PAGES = [
   { label: "Chapter notes", to: "/notes", icon: ScanText },
   { label: "Study companion", to: "/companion", icon: BookOpen },
   { label: "Code", to: "/code", icon: Code2 },
-  { label: "Settings", to: "/settings", icon: SettingsIcon },
 ] as const;
 
 const rowClass = (active: boolean) =>
@@ -70,15 +69,17 @@ export function AppSidebar({
     onNavigate();
   };
 
+  const settingsActive = pathname.startsWith("/settings");
+
   return (
     <nav aria-label="AceMate" className="flex h-full flex-col bg-[var(--bg-sidebar)]">
       <div className="flex h-12 shrink-0 items-center justify-between pl-4 pr-2">
         <button
           type="button"
           onClick={newChat}
-          className="flex items-center gap-2 rounded-md text-[15px] font-semibold tracking-[-0.01em] text-[var(--fg)]"
+          className="font-display flex items-center gap-2 rounded-md text-[18px] font-bold text-[var(--fg)]"
         >
-          <AceMateLogo size={18} />
+          <AceMateLogo size={17} />
           AceMate
         </button>
         <button
@@ -91,11 +92,19 @@ export function AppSidebar({
         </button>
       </div>
 
-      <div className="flex flex-col gap-0.5 px-2 pt-1">
-        <button type="button" onClick={newChat} className={rowClass(false)}>
-          <SquarePen className="h-4 w-4 text-[var(--fg-muted)]" strokeWidth={1.75} />
+      <div className="px-3 pt-2">
+        <button
+          type="button"
+          onClick={newChat}
+          className="flex h-10 w-full items-center gap-2 rounded-[10px] border border-[var(--line-strong)] bg-[var(--surface)] px-3 text-[14px] font-medium text-[var(--fg)] transition-colors hover:bg-[var(--surface-hover)]"
+        >
+          <Plus className="h-4 w-4" strokeWidth={2} />
           New chat
         </button>
+      </div>
+
+      <div className="mt-6 flex flex-col gap-0.5 px-2">
+        <div className="label-mono px-2.5 pb-2">Study</div>
         {PAGES.map((page) => {
           const Icon = page.icon;
           return (
@@ -112,8 +121,8 @@ export function AppSidebar({
         })}
       </div>
 
-      <div className="scrollbar-thin mt-5 min-h-0 flex-1 overflow-y-auto px-2 pb-3">
-        <div className="px-2.5 pb-1.5 text-[12px] font-medium text-[var(--fg-faint)]">Recents</div>
+      <div className="scrollbar-thin mt-6 min-h-0 flex-1 overflow-y-auto px-2 pb-3">
+        <div className="label-mono px-2.5 pb-2">Recent chats</div>
         {!user ? (
           <p className="px-2.5 py-1 text-[13px] leading-snug text-[var(--fg-faint)]">
             {loading
@@ -141,45 +150,59 @@ export function AppSidebar({
         )}
       </div>
 
-      <div className="shrink-0 border-t border-[var(--line)] px-2 py-2">
-        {!user && !loading && IS_WEB ? (
-          <Link to="/auth" onClick={onNavigate} className={`${rowClass(pathname === "/auth")} h-11`}>
-            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--surface-hover)]">
-              <LogIn className="h-4 w-4 text-[var(--fg-muted)]" strokeWidth={1.75} />
-            </span>
-            <span className="min-w-0 flex-1 leading-tight">
-              <span className="block truncate text-[13.5px]">Sign in</span>
-              <span className="block truncate text-[12px] text-[var(--fg-faint)]">Save your chats and notes</span>
-            </span>
-          </Link>
-        ) : (
-          <div className="flex h-11 items-center gap-2.5 rounded-lg px-2.5">
-            {user?.avatarUrl ? (
-              <img src={user.avatarUrl} alt="" className="h-7 w-7 shrink-0 rounded-full object-cover" />
-            ) : (
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--surface-hover)] text-[12px] font-medium uppercase text-[var(--fg)]">
-                {user ? (user.name || "?").slice(0, 1) : <UserRound className="h-4 w-4 text-[var(--fg-muted)]" strokeWidth={1.75} />}
+      <div className="flex shrink-0 items-center gap-1 border-t border-[var(--line)] px-2 py-2">
+        <div className="min-w-0 flex-1">
+          {!user && !loading && IS_WEB ? (
+            <Link to="/auth" onClick={onNavigate} className={`${rowClass(pathname === "/auth")} h-11`}>
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--surface-hover)]">
+                <LogIn className="h-4 w-4 text-[var(--fg-muted)]" strokeWidth={1.75} />
               </span>
-            )}
-            <div className="min-w-0 flex-1 leading-tight">
-              <div className="truncate text-[13.5px] text-[var(--fg)]">
-                {user ? user.name || "Signed in" : loading ? "" : "Guest"}
-              </div>
-              <div className="truncate text-[12px] text-[var(--fg-faint)]">
-                {user ? (IS_WEB ? "Signed in" : "Saved to claude.ai") : loading ? "" : "Chats aren't saved"}
+              <span className="min-w-0 flex-1 leading-tight">
+                <span className="block truncate text-[13.5px]">Sign in</span>
+                <span className="block truncate text-[12px] text-[var(--fg-faint)]">Save your chats and notes</span>
+              </span>
+            </Link>
+          ) : (
+            <div className="flex h-11 items-center gap-2.5 rounded-lg px-2.5">
+              {user?.avatarUrl ? (
+                <img src={user.avatarUrl} alt="" className="h-7 w-7 shrink-0 rounded-full object-cover" />
+              ) : (
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--surface-hover)] text-[12px] font-medium uppercase text-[var(--fg)]">
+                  {user ? (user.name || "?").slice(0, 1) : <UserRound className="h-4 w-4 text-[var(--fg-muted)]" strokeWidth={1.75} />}
+                </span>
+              )}
+              <div className="min-w-0 flex-1 leading-tight">
+                <div className="truncate text-[13.5px] text-[var(--fg)]">
+                  {user ? user.name || "Signed in" : loading ? "" : "Guest"}
+                </div>
+                {user && platform.accounts ? (
+                  <button
+                    type="button"
+                    onClick={() => void platform.accounts?.signOut()}
+                    className="text-[12px] text-[var(--fg-faint)] underline-offset-2 hover:text-[var(--fg)] hover:underline"
+                  >
+                    Sign out
+                  </button>
+                ) : (
+                  <div className="truncate text-[12px] text-[var(--fg-faint)]">
+                    {user ? (IS_WEB ? "Signed in" : "Saved to claude.ai") : loading ? "" : "Chats aren't saved"}
+                  </div>
+                )}
               </div>
             </div>
-            {user && platform.accounts && (
-              <button
-                type="button"
-                onClick={() => void platform.accounts?.signOut()}
-                className="shrink-0 rounded-md px-2 py-1 text-[12.5px] text-[var(--fg-muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--fg)]"
-              >
-                Sign out
-              </button>
-            )}
-          </div>
-        )}
+          )}
+        </div>
+        <Link
+          to="/settings"
+          onClick={onNavigate}
+          aria-label="Settings"
+          title="Settings"
+          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors hover:bg-[var(--surface-hover)] hover:text-[var(--fg)] ${
+            settingsActive ? "bg-[var(--surface-hover)] text-[var(--fg)]" : "text-[var(--fg-muted)]"
+          }`}
+        >
+          <SettingsIcon className="h-[18px] w-[18px]" strokeWidth={1.75} />
+        </Link>
       </div>
     </nav>
   );

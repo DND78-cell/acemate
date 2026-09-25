@@ -2,8 +2,12 @@
 
 An AI chat and study assistant powered by Claude: chat with image upload, a Code
 screen with live preview, Chapter Notes (photos → summary, flashcards, quiz) and a
-study Companion with an activity heatmap. Themes: Graphite (default), Ocean, Warm,
-Light.
+study Companion with an activity heatmap.
+
+It's laid out like a student's exercise book: a margin rule down each conversation,
+question numbers (Q1, Q2…) in the margin, and the date in the corner of the page.
+Type is Bricolage Grotesque for headings and Atkinson Hyperlegible for reading.
+Themes: Graphite (default), Ocean, Chalkboard, Paper.
 
 The same code runs two ways:
 

@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { ChevronDown, ChevronLeft, ChevronRight, ImagePlus, Type, X } from "lucide-react";
 import { TopBar } from "@/components/TopBar";
 import { Composer } from "@/components/Composer";
-import { ChatMessage } from "@/components/ChatMessage";
+import { ChatMessage, questionNumbers } from "@/components/ChatMessage";
+import { ANSWER_DISCLAIMER } from "@/components/Notebook";
 import { messageText, reasoningText, ThinkingActivity } from "@/components/ai/AiResponseActivity";
 import { useAuth } from "@/hooks/use-auth";
 import {
@@ -300,6 +301,8 @@ export function CompanionPage() {
     });
   };
 
+  const numbers = questionNumbers(messages);
+
   return (
     <div className="flex h-full flex-col">
       <TopBar
@@ -316,8 +319,8 @@ export function CompanionPage() {
       />
 
       {/* Sources */}
-      <section className="shrink-0 px-3 pb-3 sm:px-4">
-        <div className="mx-auto max-w-[736px] rounded-xl border border-[var(--line)] bg-[var(--surface)] p-3">
+      <section className="notebook shrink-0 pb-3">
+        <div className="rounded-xl border border-[var(--line)] bg-[var(--surface)] p-3">
           <div className="flex flex-wrap items-center gap-2">
             <input
               id="companion-subject"
@@ -441,7 +444,7 @@ export function CompanionPage() {
       {/* Chat */}
       <div ref={scrollerRef} className="scrollbar-thin min-h-0 flex-1 overflow-y-auto">
         <div
-          className="mx-auto flex max-w-[736px] flex-col gap-6 px-4 pb-6 pt-1 sm:px-5"
+          className="notebook flex min-h-full flex-col gap-4 pb-6 pt-1"
           style={{ fontSize: TEXT_SIZE_PX[settings.textSize] }}
         >
           {messages.length === 0 ? (
@@ -449,13 +452,13 @@ export function CompanionPage() {
               <p className="px-1 pb-2 text-[13px] text-[var(--fg-muted)]">
                 Add your material above, then start the session.
               </p>
-              <ul className="overflow-hidden rounded-xl border border-[var(--line)]">
-                {STARTERS.map((st, i) => (
-                  <li key={st} className={i ? "border-t border-[var(--line)]" : ""}>
+              <ul className="ruled-list border-y border-[var(--line)]">
+                {STARTERS.map((st) => (
+                  <li key={st}>
                     <button
                       type="button"
                       onClick={() => submit(st)}
-                      className="w-full px-4 py-3 text-left text-[14px] text-[var(--fg)] transition-colors hover:bg-[var(--surface-hover)]"
+                      className="w-full px-1 py-3 text-left text-[14.5px] text-[var(--fg)] transition-colors hover:bg-[var(--surface-hover)]"
                     >
                       {st}
                     </button>
@@ -469,6 +472,7 @@ export function CompanionPage() {
                 <ChatMessage
                   key={m.id}
                   message={m}
+                  number={numbers.get(m.id)}
                   thoughtSeconds={thoughtDurations[m.id]}
                   writing={status === "streaming" && currentAssistant?.id === m.id && Boolean(currentText)}
                 />
@@ -497,21 +501,24 @@ export function CompanionPage() {
       />
 
       {/* Composer */}
-      <div className="shrink-0 px-3 pb-2 sm:px-4">
-        <div className="mx-auto max-w-[736px]">
-          <Composer
-            value={input}
-            onChange={setInput}
-            onSubmit={() => submit(input)}
-            onStop={stop}
-            busy={isLoading}
-            canSend={!!input.trim() && !isLoading}
-            placeholder="Ask about your material…"
-            inputRef={inputRef}
-          />
-          <p className="py-2 text-center text-[11.5px] text-[var(--fg-faint)]">
-            AceMate can make mistakes — double-check important answers.
-          </p>
+      <div className="shrink-0">
+        <div className="notebook">
+          <div className="relative">
+            <span className="margin-note" style={{ top: "0.8rem" }} aria-hidden="true">
+              Q{numbers.size + 1}
+            </span>
+            <Composer
+              value={input}
+              onChange={setInput}
+              onSubmit={() => submit(input)}
+              onStop={stop}
+              busy={isLoading}
+              canSend={!!input.trim() && !isLoading}
+              placeholder="Ask about your material…"
+              inputRef={inputRef}
+            />
+          </div>
+          <p className="py-2 text-[11.5px] text-[var(--fg-faint)]">{ANSWER_DISCLAIMER}</p>
         </div>
       </div>
     </div>
@@ -568,8 +575,8 @@ function CompanionActivity({
   ];
 
   return (
-    <section className="shrink-0 px-3 pb-2 sm:px-4">
-      <div className="mx-auto max-w-[736px] rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2">
+    <section className="notebook shrink-0 pb-2">
+      <div className="rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2">
         <button
           type="button"
           onClick={onToggle}
