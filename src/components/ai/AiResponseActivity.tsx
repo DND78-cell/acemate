@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { ChevronRight } from "lucide-react";
 import { AceMateOrb } from "./AceMateOrb";
 
 export function reasoningText(parts: Array<{ type: string; text?: string }>): string {
@@ -23,13 +22,12 @@ function latestReasoningLine(reasoning: string): string {
 
 function ReasoningDetails({ text }: { text: string }) {
   return (
-    <div className="glass fade-in scrollbar-thin mt-2 max-h-44 overflow-y-auto whitespace-pre-wrap rounded-xl px-3.5 py-2.5 text-[12.5px] leading-relaxed text-[var(--fg-muted)]">
+    <div className="mt-2 max-h-40 overflow-y-auto whitespace-pre-wrap pl-7 text-xs leading-relaxed text-[color:var(--ice-dim)]">
       {text}
     </div>
   );
 }
 
-/** While AceMate works on an answer: the orb, what it's considering, and the time. */
 export function ThinkingActivity({
   startedAt,
   reasoning,
@@ -47,24 +45,21 @@ export function ThinkingActivity({
     return () => window.clearInterval(interval);
   }, [startedAt]);
 
-  const line = reasoning ? latestReasoningLine(reasoning) : "Thinking…";
   return (
-    <div role="status" aria-live="polite" className="msg-in w-full">
-      <div className="flex min-w-0 items-center gap-3 text-[13.5px] text-[var(--fg-muted)]">
-        <AceMateOrb activity="thinking" size={22} showLabel={false} />
-        <span key={line} className="fade-in min-w-0 flex-1 truncate">
-          {line}
-        </span>
-        <span className="shrink-0 tabular-nums text-[12.5px] text-[var(--fg-faint)]">{elapsed}s</span>
+    <div role="status" aria-live="polite" className="max-w-[92%] py-1 pl-1">
+      <div className="flex min-w-0 items-center gap-2 text-xs text-[color:var(--ice-dim)]">
+        <AceMateOrb activity="thinking" size={20} showLabel={false} />
+        <span className="min-w-0 flex-1 truncate">{reasoning ? latestReasoningLine(reasoning) : "Thinking…"}</span>
+        <span className="shrink-0 tabular-nums">{elapsed}s</span>
         {reasoning && (
           <button
             type="button"
             aria-label={open ? "Hide reasoning" : "Show reasoning"}
             aria-expanded={open}
             onClick={() => setOpen((value) => !value)}
-            className="round-btn h-7 w-7"
+            className={`flex h-5 w-5 shrink-0 items-center justify-center text-base transition-transform ${open ? "rotate-90" : ""}`}
           >
-            <ChevronRight className={`h-4 w-4 transition-transform duration-200 ${open ? "rotate-90" : ""}`} strokeWidth={1.8} />
+            ›
           </button>
         )}
       </div>
@@ -73,7 +68,6 @@ export function ThinkingActivity({
   );
 }
 
-/** Under a finished answer's header: how long AceMate reasoned, and what it considered. */
 export function ThoughtDisclosure({
   seconds,
   reasoning,
@@ -82,24 +76,22 @@ export function ThoughtDisclosure({
   reasoning: string;
 }) {
   const [open, setOpen] = useState(false);
-  const time = <span className="tabular-nums text-[var(--fg-faint)]">{seconds}s</span>;
+  const label = <span className="tabular-nums">Thought for {seconds}s</span>;
 
   if (!reasoning) {
-    return <div className="mb-2 text-[12.5px] text-[var(--fg-muted)]">Answered in {time}</div>;
+    return <div className="mb-1 pl-1 text-xs text-[color:var(--ice-dim)]">{label}</div>;
   }
 
   return (
-    <div className="mb-2 w-full text-[12.5px] text-[var(--fg-muted)]">
+    <div className="mb-1 pl-1 text-xs text-[color:var(--ice-dim)]">
       <button
         type="button"
         aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
-        className="-ml-1.5 inline-flex items-center gap-1.5 rounded-lg px-1.5 py-0.5 transition-colors duration-200 hover:bg-[var(--surface-hover)] hover:text-[var(--fg)]"
+        className="flex items-center gap-1.5"
       >
-        <span>{open ? "Hide reasoning" : "Reasoning"}</span>
-        <span aria-hidden="true">·</span>
-        {time}
-        <ChevronRight className={`h-3.5 w-3.5 transition-transform duration-200 ${open ? "rotate-90" : ""}`} strokeWidth={1.8} />
+        {label}
+        <span className={`text-base transition-transform ${open ? "rotate-90" : ""}`}>›</span>
       </button>
       {open && <ReasoningDetails text={reasoning} />}
     </div>

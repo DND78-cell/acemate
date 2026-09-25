@@ -1,7 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { AceMateLogo } from "@/components/AceMateLogo";
-import { Notice } from "@/components/Notice";
 import { TopBar } from "@/components/TopBar";
 import { useAuth } from "@/hooks/use-auth";
 import { platform } from "@/platform";
@@ -34,21 +33,21 @@ export function AuthPage() {
     if (result.error) setError(result.error);
   };
 
-  const field = "field h-12 w-full rounded-xl px-4 text-[15px]";
+  const field =
+    "h-12 w-full rounded-xl border border-[var(--line)] bg-[var(--surface)] px-4 text-[15px] text-[var(--fg)] outline-none placeholder:text-[var(--fg-faint)] focus:border-[var(--line-strong)]";
 
   return (
     <div className="flex h-full flex-col">
       <TopBar />
       <div className="scrollbar-thin min-h-0 flex-1 overflow-y-auto">
-        <div className="mx-auto flex w-full max-w-[440px] flex-col px-4 pb-12 pt-[6vh]">
-          <div className="glass-panel msg-in rounded-[24px] px-6 py-8 sm:px-8">
+        <div className="mx-auto flex w-full max-w-[400px] flex-col px-5 pb-12 pt-[8vh]">
           <div className="flex flex-col items-center text-center">
-            <AceMateLogo size={44} glow />
-            <h1 className="font-display mt-6 text-[28px] font-semibold leading-tight text-[var(--fg)]">
+            <AceMateLogo size={40} />
+            <h1 className="font-serif mt-5 text-[32px] font-normal leading-tight text-[var(--fg)]">
               {mode === "signin" ? "Sign in" : "Create account"}
             </h1>
             <p className="mt-2 text-[14.5px] text-[var(--fg-muted)]">
-              Save your chats and notes. You can always keep using AceMate as a guest.
+              Save your chats and Chapter Notes. You can always keep using AceMate as a guest.
             </p>
           </div>
 
@@ -77,12 +76,16 @@ export function AuthPage() {
               className={field}
             />
 
-            {error && <Notice>{error}</Notice>}
+            {error && (
+              <div role="alert" className="rounded-xl border border-[var(--danger)]/35 bg-[var(--danger)]/10 px-4 py-3 text-[13.5px] text-[var(--fg)]">
+                {error}
+              </div>
+            )}
 
             <button
               type="submit"
               disabled={busy}
-              className="btn-primary mt-1 h-12 rounded-full text-[15px] font-medium"
+              className="mt-1 h-12 rounded-xl bg-[var(--primary-bg)] text-[15px] font-medium text-[var(--primary-fg)] transition-opacity hover:opacity-90 disabled:opacity-50"
             >
               {busy ? "Working…" : mode === "signin" ? "Sign in" : "Create account"}
             </button>
@@ -94,14 +97,13 @@ export function AuthPage() {
               setMode(mode === "signin" ? "signup" : "signin");
               setError(null);
             }}
-            className="mt-6 w-full text-center text-[14px] text-[var(--fg-muted)] underline decoration-[var(--line-strong)] underline-offset-4 transition-colors hover:text-[var(--fg)]"
+            className="mt-5 text-[14px] text-[var(--fg-muted)] underline underline-offset-4 hover:text-[var(--fg)]"
           >
             {mode === "signin" ? "New here? Create an account" : "Already have an account? Sign in"}
           </button>
-          <Link to="/" className="mt-3 block text-center text-[14px] text-[var(--fg-faint)] transition-colors hover:text-[var(--fg-muted)]">
+          <Link to="/" className="mt-3 text-center text-[14px] text-[var(--fg-faint)] hover:text-[var(--fg-muted)]">
             Continue as guest
           </Link>
-          </div>
         </div>
       </div>
     </div>

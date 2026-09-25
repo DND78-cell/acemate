@@ -1,16 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import { AppWindow, Check, Code2, Copy, Download, Eye, RotateCw } from "lucide-react";
+import { AceMateLogo } from "@/components/AceMateLogo";
 import { TopBar } from "@/components/TopBar";
 import { Composer, ModeToggle, ModelMenu } from "@/components/Composer";
 import { ChatMessage } from "@/components/ChatMessage";
-import { EmptyState, Notice } from "@/components/Notice";
 import { Markdown } from "@/components/Markdown";
 import { messageText, reasoningText, ThinkingActivity } from "@/components/ai/AiResponseActivity";
 import { AceMateOrb } from "@/components/ai/AceMateOrb";
 import { useSettings, TEXT_SIZE_PX, type ModelId } from "@/lib/settings";
 import { newId, useAceChat } from "@/lib/chat";
 import { sampleErrorCopy } from "@/lib/claude";
-import { IS_WEB, platform } from "@/platform";
+import { platform } from "@/platform";
 import { chatInstructions, tierFor } from "@/lib/prompts";
 
 const STARTERS = [
@@ -81,11 +81,11 @@ function PageCard({
     : `${lines} line${lines === 1 ? "" : "s"} written so far`;
   return (
     <div
-      className={`glass flex w-full max-w-[560px] flex-wrap items-center gap-3 rounded-2xl px-3.5 py-3 transition-colors duration-200 ${
-        active ? "border-[rgba(var(--accent-3-rgb),0.4)]" : ""
+      className={`flex w-full max-w-[560px] flex-wrap items-center gap-3 rounded-xl border bg-[var(--surface)] px-3.5 py-3 ${
+        active ? "border-[var(--line-strong)]" : "border-[var(--line)]"
       }`}
     >
-      <span className="quick-icon h-9 w-9 shrink-0">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--surface-hover)] text-[var(--fg-muted)]">
         {complete ? (
           <AppWindow className="h-[18px] w-[18px]" strokeWidth={1.75} />
         ) : (
@@ -101,7 +101,7 @@ function PageCard({
           <button
             type="button"
             onClick={() => onOpen("preview")}
-            className="chip inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[12.5px]"
+            className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-[var(--line)] px-2.5 text-[12.5px] text-[var(--fg)] transition-colors hover:bg-[var(--surface-hover)]"
           >
             <Eye className="h-3.5 w-3.5" strokeWidth={1.75} />
             Preview
@@ -109,7 +109,7 @@ function PageCard({
           <button
             type="button"
             onClick={() => onOpen("code")}
-            className="inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[12.5px] text-[var(--fg-muted)] transition-colors duration-200 hover:bg-[var(--surface-hover)] hover:text-[var(--fg)]"
+            className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-[12.5px] text-[var(--fg-muted)] transition-colors hover:bg-[var(--surface-hover)] hover:text-[var(--fg)]"
           >
             <Code2 className="h-3.5 w-3.5" strokeWidth={1.75} />
             Code
@@ -287,23 +287,25 @@ export function CodePage() {
 
   const conversationPane = (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-      <div ref={scrollerRef} className="scrollbar-thin thread-fade min-h-0 flex-1 overflow-y-auto">
+      <div ref={scrollerRef} className="scrollbar-thin min-h-0 flex-1 overflow-y-auto">
         {showEmpty ? (
-          <div className="mx-auto flex min-h-full w-full max-w-[600px] flex-col items-center justify-center px-5 py-10 text-center">
-            <AceMateOrb activity="idle" size={44} showLabel={false} label="Ready to build" />
-            <h1 className="font-display mt-8 text-[26px] font-semibold leading-tight text-[var(--fg)] sm:text-[32px]">
-              What should we build?
-            </h1>
-            <p className="mt-2 text-[15px] text-[var(--fg-muted)]">
-              Describe a page, app or game. It renders live next to the chat.
+          <div className="mx-auto flex min-h-full max-w-[560px] flex-col justify-center px-5 py-10">
+            <div className="flex items-center gap-3">
+              <AceMateLogo size={26} />
+              <h1 className="font-serif text-[30px] font-normal leading-tight text-[var(--fg)]">
+                What should we build?
+              </h1>
+            </div>
+            <p className="mt-2 text-[14.5px] text-[var(--fg-muted)]">
+              Describe a page, app, or game — it renders live.
             </p>
-            <ul className="glass mt-8 w-full overflow-hidden rounded-[18px] text-left">
+            <ul className="mt-6 overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--surface)]">
               {STARTERS.map((s, i) => (
                 <li key={s} className={i ? "border-t border-[var(--line)]" : ""}>
                   <button
                     type="button"
                     onClick={() => submit(s)}
-                    className="w-full px-4 py-3 text-left text-[14px] text-[var(--fg)] transition-colors duration-200 hover:bg-[var(--surface-hover)]"
+                    className="w-full px-4 py-3 text-left text-[14px] text-[var(--fg)] transition-colors hover:bg-[var(--surface-hover)]"
                   >
                     {s}
                   </button>
@@ -313,7 +315,7 @@ export function CodePage() {
           </div>
         ) : (
           <div
-            className="thread mx-auto flex w-full max-w-[760px] flex-col gap-8 px-4 pb-8 pt-3 sm:px-5"
+            className="mx-auto flex max-w-[736px] flex-col gap-6 px-4 pb-6 pt-4 sm:px-5"
             style={{ fontSize: TEXT_SIZE_PX[settings.textSize] }}
           >
             {messages.map((m) => (
@@ -328,13 +330,17 @@ export function CodePage() {
             {isThinking && thinkingStartedAt && (
               <ThinkingActivity startedAt={thinkingStartedAt} reasoning={currentReasoning} />
             )}
-            {error && <Notice>{sampleErrorCopy(error, "Something went wrong. Try again.")}</Notice>}
+            {error && (
+              <div className="rounded-xl border border-[var(--danger)]/35 bg-[var(--danger)]/10 px-3.5 py-2.5 text-[13.5px] text-[var(--fg)]">
+                {sampleErrorCopy(error, "Something went wrong — try again.")}
+              </div>
+            )}
           </div>
         )}
       </div>
 
-      <div className="shrink-0 px-3 pb-3 sm:px-4 sm:pb-4">
-        <div className="mx-auto w-full max-w-[760px]">
+      <div className="shrink-0 px-3 pb-2 sm:px-4">
+        <div className="mx-auto max-w-[736px]">
           <Composer
             value={input}
             onChange={setInput}
@@ -342,13 +348,12 @@ export function CodePage() {
             onStop={stop}
             busy={isLoading}
             canSend={canSend}
-            placeholder={showEmpty ? "Describe what to build…" : "Ask for a change…"}
+            placeholder="Describe what to build…"
             inputRef={inputRef}
-            voice={IS_WEB}
             trailing={<ModelMenu model={model} onModel={setModel} />}
           />
-          <p className="pt-2 text-center text-[11.5px] text-[var(--fg-faint)]">
-            AceMate can make mistakes. Check the page before you share it.
+          <p className="py-2 text-center text-[11.5px] text-[var(--fg-faint)]">
+            AceMate can make mistakes — double-check important answers.
           </p>
         </div>
       </div>
@@ -356,7 +361,7 @@ export function CodePage() {
   );
 
   const previewPane = (
-    <div className="glass-panel flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[20px]">
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--surface)]">
       <div className="flex items-center justify-between gap-2 border-b border-[var(--line)] px-2.5 py-2">
         <ModeToggle
           value={tab}
@@ -386,11 +391,11 @@ export function CodePage() {
       <div className="min-h-0 min-w-0 flex-1 overflow-hidden">
         {isBuildingHtml ? (
           <div className="flex h-full items-center justify-center">
-            <AceMateOrb activity="building" size={56} centered />
+            <AceMateOrb activity="building" size={64} centered />
           </div>
         ) : !html ? (
-          <div className="flex h-full items-center justify-center">
-            <EmptyState title="Nothing built yet." subtitle="Ask for a page, app or game and it will appear here." />
+          <div className="flex h-full items-center justify-center px-6 text-center text-[14px] text-[var(--fg-muted)]">
+            Ask for a page, app, or game — it&apos;ll render here.
           </div>
         ) : tab === "preview" ? (
           <iframe
@@ -417,7 +422,7 @@ export function CodePage() {
           <button
             type="button"
             onClick={onNewSession}
-            className="chip h-8 rounded-full px-3.5 text-[13px]"
+            className="h-8 rounded-lg border border-[var(--line)] px-3 text-[13px] text-[var(--fg)] transition-colors hover:bg-[var(--surface-hover)]"
           >
             New session
           </button>
@@ -439,7 +444,7 @@ export function CodePage() {
             }}
           />
           {hasNewPreview && mobileView !== "preview" && (
-            <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-[var(--accent-2)] shadow-[0_0_8px_var(--accent-2)]" aria-label="New preview" />
+            <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-[var(--fg)]" aria-label="New preview" />
           )}
         </div>
       </div>
@@ -474,7 +479,7 @@ function PanelButton({
       disabled={disabled}
       aria-label={label}
       title={label}
-      className="inline-flex h-8 items-center gap-1.5 rounded-full px-2.5 text-[12.5px] text-[var(--fg-muted)] transition-colors duration-200 hover:bg-[var(--surface-hover)] hover:text-[var(--fg)] disabled:opacity-35"
+      className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2 text-[12.5px] text-[var(--fg-muted)] transition-colors hover:bg-[var(--surface-hover)] hover:text-[var(--fg)] disabled:opacity-35"
     >
       {children}
       <span className="hidden sm:inline">{label}</span>

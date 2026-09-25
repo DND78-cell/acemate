@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 export type ResponseStyle = "concise" | "balanced" | "detailed";
 export type TextSize = "small" | "medium" | "large";
-export type Theme = "space" | "light";
+export type Theme = "graphite" | "ocean" | "warm" | "light";
 export type ModelId = "aceOne" | "aceUltra";
 export type EffortMode = "quick" | "balanced" | "max";
 
@@ -22,7 +22,7 @@ export const THEME_KEY = "acemate-theme-v2";
 const DEFAULTS: Settings = {
   responseStyle: "balanced",
   textSize: "medium",
-  theme: "space",
+  theme: "graphite",
   model: "aceOne",
   effort: "balanced",
   codeMode: false,
@@ -55,12 +55,8 @@ function isEffort(v: unknown): v is EffortMode {
 }
 
 function isTheme(v: unknown): v is Theme {
-  return v === "space" || v === "light";
+  return v === "graphite" || v === "ocean" || v === "warm" || v === "light";
 }
-
-// The Glass Space redesign has one dark theme (Space) and Light; earlier
-// dark themes (Graphite, Ocean, Warm, Chalkboard) move to Space.
-const renamedTheme = (v: string | null) => (v && v !== "light" ? "space" : v);
 
 function read(): Settings {
   if (typeof window === "undefined") return DEFAULTS;
@@ -69,7 +65,7 @@ function read(): Settings {
     const parsed = raw
       ? (JSON.parse(raw) as Partial<Settings> & { model?: unknown; effort?: unknown })
       : {};
-    const savedTheme = renamedTheme(window.localStorage.getItem(THEME_KEY));
+    const savedTheme = window.localStorage.getItem(THEME_KEY);
     return {
       responseStyle:
         parsed.responseStyle === "concise" ||

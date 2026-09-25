@@ -3,25 +3,17 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>AceMate</title>
-    <meta name="description" content="AceMate is a calm study space with an AI companion. Ask, study, practice, or create: explanations, notes from chapter photos, quizzes and study plans." />
-    <meta name="theme-color" content="#05070d" />
+    <title>AceMate — Ask anything</title>
+    <meta name="description" content="AceMate is a friendly, sharp AI assistant. Ask anything — explanations, writing, coding, math, ideas." />
+    <meta name="theme-color" content="#1e1e1f" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400;500&family=Onest:wght@400..600&display=swap" />
-    <style>
-      /* Shown only until the app starts: the AceMate orb, breathing. */
-      .boot { position: fixed; inset: 0; display: grid; place-items: center; background: #05070d; }
-      body[data-theme="light"] .boot { background: #f4f5fa; }
-      .boot i { width: 44px; height: 44px; border-radius: 50%; background: radial-gradient(circle at 34% 28%, #f5f3ff 0%, #a78bfa 28%, #7c3aed 60%, #0ea5e9 100%); box-shadow: 0 0 40px rgba(139, 92, 246, 0.45); animation: boot 2.4s ease-in-out infinite; }
-      @keyframes boot { 50% { transform: scale(1.06); box-shadow: 0 0 56px rgba(139, 92, 246, 0.6); } }
-      @media (prefers-reduced-motion: reduce) { .boot i { animation: none; } }
-    </style>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500&display=swap" />
   </head>
   <body>
-    <script>(function(){var t='space';try{if(localStorage.getItem('acemate-theme-v2')==='light')t='light';}catch(e){}document.body.dataset.theme=t;})();</script>
-    <div id="root"><div class="boot" role="status" aria-label="Loading AceMate"><i></i></div></div>
+    <script>(function(){var t='graphite';try{var s=localStorage.getItem('acemate-theme-v2');if(s==='ocean'||s==='warm'||s==='light')t=s;}catch(e){}document.body.dataset.theme=t;})();</script>
+    <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

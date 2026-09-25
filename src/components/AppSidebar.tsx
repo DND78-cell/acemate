@@ -3,11 +3,11 @@ import { useEffect, useState } from "react";
 import {
   BookOpen,
   Code2,
-  LogIn,
-  NotebookPen,
   PanelLeftClose,
-  Plus,
+  ScanText,
   Settings as SettingsIcon,
+  SquarePen,
+  LogIn,
   UserRound,
 } from "lucide-react";
 import { AceMateLogo } from "@/components/AceMateLogo";
@@ -16,25 +16,20 @@ import { listChats, type ChatSummary } from "@/lib/persistence";
 import { requestChat, useChatNavState } from "@/lib/chat-nav";
 import { IS_WEB, platform } from "@/platform";
 
-const STUDY = [
-  { label: "Notes & quizzes", to: "/notes", icon: NotebookPen },
+const PAGES = [
+  { label: "Chapter notes", to: "/notes", icon: ScanText },
   { label: "Study companion", to: "/companion", icon: BookOpen },
   { label: "Code", to: "/code", icon: Code2 },
+  { label: "Settings", to: "/settings", icon: SettingsIcon },
 ] as const;
 
-const ICON = "h-[17px] w-[17px] shrink-0";
-
 const rowClass = (active: boolean) =>
-  `group flex h-9 w-full items-center gap-3 rounded-xl px-3 text-left text-[14px] transition-colors duration-200 ${
+  `flex h-9 w-full items-center gap-2.5 rounded-lg px-2.5 text-left text-[14px] transition-colors ${
     active
-      ? "bg-[var(--glass-strong)] text-[var(--fg)]"
-      : "text-[var(--fg-muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--fg)]"
+      ? "bg-[var(--surface-hover)] text-[var(--fg)]"
+      : "text-[var(--fg)] hover:bg-[var(--surface-hover)]"
   }`;
 
-const iconClass = (active: boolean) =>
-  `${ICON} transition-colors duration-200 ${active ? "text-[var(--accent-ink)]" : "text-[var(--fg-faint)] group-hover:text-[var(--fg-muted)]"}`;
-
-/** The floating glass sidebar: new chat, recent conversations, study tools, settings. */
 export function AppSidebar({
   onNavigate,
   onClose,
@@ -75,107 +70,95 @@ export function AppSidebar({
     onNavigate();
   };
 
-  const settingsActive = pathname.startsWith("/settings");
-
   return (
-    <nav aria-label="AceMate" className="glass-panel flex h-full flex-col rounded-[22px]">
-      <div className="flex h-14 shrink-0 items-center justify-between pl-4 pr-2">
+    <nav aria-label="AceMate" className="flex h-full flex-col bg-[var(--bg-sidebar)]">
+      <div className="flex h-12 shrink-0 items-center justify-between pl-4 pr-2">
         <button
           type="button"
           onClick={newChat}
-          className="flex items-center gap-2.5 rounded-lg text-[16px] font-semibold tracking-[-0.01em] text-[var(--fg)]"
+          className="flex items-center gap-2 rounded-md text-[15px] font-semibold tracking-[-0.01em] text-[var(--fg)]"
         >
-          <AceMateLogo size={24} />
+          <AceMateLogo size={18} />
           AceMate
         </button>
         <button
           type="button"
           onClick={onClose}
           aria-label="Close sidebar"
-          data-drawer-focus
-          className="round-btn h-8 w-8"
+          className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--fg-muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--fg)]"
         >
-          <PanelLeftClose className={ICON} strokeWidth={1.6} />
+          <PanelLeftClose className="h-[18px] w-[18px]" strokeWidth={1.75} />
         </button>
       </div>
 
-      <div className="px-3 pt-1">
-        <button
-          type="button"
-          onClick={newChat}
-          className="chip flex h-10 w-full items-center gap-2.5 rounded-xl px-3 text-[14px] font-medium hover:-translate-y-px"
-        >
-          <Plus className="h-4 w-4 text-[var(--accent-ink)]" strokeWidth={1.8} />
+      <div className="flex flex-col gap-0.5 px-2 pt-1">
+        <button type="button" onClick={newChat} className={rowClass(false)}>
+          <SquarePen className="h-4 w-4 text-[var(--fg-muted)]" strokeWidth={1.75} />
           New chat
         </button>
+        {PAGES.map((page) => {
+          const Icon = page.icon;
+          return (
+            <Link
+              key={page.to}
+              to={page.to}
+              onClick={onNavigate}
+              className={rowClass(pathname.startsWith(page.to))}
+            >
+              <Icon className="h-4 w-4 text-[var(--fg-muted)]" strokeWidth={1.75} />
+              {page.label}
+            </Link>
+          );
+        })}
       </div>
 
-      <div className="scrollbar-thin mt-5 min-h-0 flex-1 overflow-y-auto px-2">
-        <div className="section-label px-3 pb-1.5">Recent</div>
+      <div className="scrollbar-thin mt-5 min-h-0 flex-1 overflow-y-auto px-2 pb-3">
+        <div className="px-2.5 pb-1.5 text-[12px] font-medium text-[var(--fg-faint)]">Recents</div>
         {!user ? (
-          <p className="px-3 py-1 text-[13px] leading-snug text-[var(--fg-faint)]">
+          <p className="px-2.5 py-1 text-[13px] leading-snug text-[var(--fg-faint)]">
             {loading
               ? ""
               : IS_WEB
-                ? "Sign in to keep your conversations."
-                : "Conversations are saved when you open AceMate signed in to claude.ai."}
+                ? "Sign in to save your chats."
+                : "Chats are saved when you open AceMate signed in to claude.ai."}
           </p>
         ) : recents.length === 0 ? (
-          <p className="px-3 py-1 text-[13px] text-[var(--fg-faint)]">Your conversations will appear here.</p>
+          <p className="px-2.5 py-1 text-[13px] text-[var(--fg-faint)]">Your chats will appear here.</p>
         ) : (
-          <ul className="flex flex-col gap-0.5 pb-2">
-            {recents.map((chat) => {
-              const active = pathname === "/" && chat.id === activeChatId;
-              return (
-                <li key={chat.id}>
-                  <button type="button" onClick={() => openChat(chat.id)} className={`${rowClass(active)} h-8 text-[13.5px]`}>
-                    <span className="truncate">{chat.title}</span>
-                  </button>
-                </li>
-              );
-            })}
+          <ul className="flex flex-col gap-0.5">
+            {recents.map((chat) => (
+              <li key={chat.id}>
+                <button
+                  type="button"
+                  onClick={() => openChat(chat.id)}
+                  className={`${rowClass(pathname === "/" && chat.id === activeChatId)} h-8`}
+                >
+                  <span className="truncate">{chat.title}</span>
+                </button>
+              </li>
+            ))}
           </ul>
         )}
       </div>
 
-      <div className="shrink-0 px-2 pt-3">
-        <div className="section-label px-3 pb-1.5">Study</div>
-        <div className="flex flex-col gap-0.5">
-          {STUDY.map((page) => {
-            const Icon = page.icon;
-            const active = pathname.startsWith(page.to);
-            return (
-              <Link key={page.to} to={page.to} onClick={onNavigate} className={rowClass(active)}>
-                <Icon className={iconClass(active)} strokeWidth={1.6} />
-                {page.label}
-              </Link>
-            );
-          })}
-          <Link to="/settings" onClick={onNavigate} className={rowClass(settingsActive)}>
-            <SettingsIcon className={iconClass(settingsActive)} strokeWidth={1.6} />
-            Settings
-          </Link>
-        </div>
-      </div>
-
-      <div className="mx-3 mt-3 shrink-0 border-t border-[var(--line)] py-2">
+      <div className="shrink-0 border-t border-[var(--line)] px-2 py-2">
         {!user && !loading && IS_WEB ? (
-          <Link to="/auth" onClick={onNavigate} className={`${rowClass(pathname === "/auth")} h-12 px-2`}>
-            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[var(--glass-strong)]">
-              <LogIn className="h-4 w-4 text-[var(--fg-muted)]" strokeWidth={1.6} />
+          <Link to="/auth" onClick={onNavigate} className={`${rowClass(pathname === "/auth")} h-11`}>
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--surface-hover)]">
+              <LogIn className="h-4 w-4 text-[var(--fg-muted)]" strokeWidth={1.75} />
             </span>
             <span className="min-w-0 flex-1 leading-tight">
-              <span className="block truncate text-[13.5px] text-[var(--fg)]">Sign in</span>
+              <span className="block truncate text-[13.5px]">Sign in</span>
               <span className="block truncate text-[12px] text-[var(--fg-faint)]">Save your chats and notes</span>
             </span>
           </Link>
         ) : (
-          <div className="flex h-12 items-center gap-2.5 px-2">
+          <div className="flex h-11 items-center gap-2.5 rounded-lg px-2.5">
             {user?.avatarUrl ? (
-              <img src={user.avatarUrl} alt="" className="h-8 w-8 shrink-0 rounded-full object-cover" />
+              <img src={user.avatarUrl} alt="" className="h-7 w-7 shrink-0 rounded-full object-cover" />
             ) : (
-              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[linear-gradient(135deg,rgba(var(--accent-rgb),0.35),rgba(var(--accent-2-rgb),0.25))] text-[12px] font-semibold uppercase text-[var(--fg)]">
-                {user ? (user.name || "?").slice(0, 1) : <UserRound className="h-4 w-4 text-[var(--fg-muted)]" strokeWidth={1.6} />}
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--surface-hover)] text-[12px] font-medium uppercase text-[var(--fg)]">
+                {user ? (user.name || "?").slice(0, 1) : <UserRound className="h-4 w-4 text-[var(--fg-muted)]" strokeWidth={1.75} />}
               </span>
             )}
             <div className="min-w-0 flex-1 leading-tight">
@@ -190,7 +173,7 @@ export function AppSidebar({
               <button
                 type="button"
                 onClick={() => void platform.accounts?.signOut()}
-                className="shrink-0 rounded-lg px-2 py-1 text-[12.5px] text-[var(--fg-muted)] transition-colors hover:bg-[var(--surface-hover)] hover:text-[var(--fg)]"
+                className="shrink-0 rounded-md px-2 py-1 text-[12.5px] text-[var(--fg-muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--fg)]"
               >
                 Sign out
               </button>

@@ -159,7 +159,7 @@ export function createApp({ db, env = process.env }) {
     c.header("X-Content-Type-Options", "nosniff");
     c.header("Referrer-Policy", "strict-origin-when-cross-origin");
     c.header("X-Frame-Options", "SAMEORIGIN");
-    c.header("Permissions-Policy", "camera=(), microphone=(self), geolocation=()");
+    c.header("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
   });
 
   // Changing requests must carry AceMate's header. Other sites can't add a

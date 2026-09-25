@@ -1,6 +1,5 @@
-import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { AppSidebar } from "@/components/AppSidebar";
-import { SpaceBackground } from "@/components/SpaceBackground";
 
 type Shell = {
   isDesktop: boolean;
@@ -43,8 +42,8 @@ export function AppShell({ children }: { children: ReactNode }) {
     }
   });
   const [drawerOpen, setDrawerOpen] = useState(false);
-  // The drawer's contents exist only while it's open, plus the moment it
-  // takes to slide away.
+  // The drawer's contents (with their metal shaders) exist only while it's
+  // open, plus the moment it takes to slide away.
   const [drawerMounted, setDrawerMounted] = useState(false);
   useEffect(() => {
     if (drawerOpen) {
@@ -53,27 +52,6 @@ export function AppShell({ children }: { children: ReactNode }) {
     }
     const t = setTimeout(() => setDrawerMounted(false), 250);
     return () => clearTimeout(t);
-  }, [drawerOpen]);
-
-  // The drawer is modal: Escape closes it, focus moves into it when it opens
-  // and goes back to whatever opened it when it closes.
-  const drawerRef = useRef<HTMLDivElement>(null);
-  const drawerOpener = useRef<HTMLElement | null>(null);
-  useEffect(() => {
-    if (!drawerOpen) return;
-    const opener = drawerOpener.current;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setDrawerOpen(false);
-    };
-    window.addEventListener("keydown", onKey);
-    const focusTimer = window.setTimeout(() => {
-      drawerRef.current?.querySelector<HTMLElement>("[data-drawer-focus]")?.focus();
-    }, 50);
-    return () => {
-      window.removeEventListener("keydown", onKey);
-      window.clearTimeout(focusTimer);
-      if (opener?.isConnected) opener.focus();
-    };
   }, [drawerOpen]);
 
   useEffect(() => {
@@ -101,20 +79,14 @@ export function AppShell({ children }: { children: ReactNode }) {
     setSidebarOpen,
     drawerOpen,
     setDrawerOpen,
-    openSidebar: () => {
-      if (isDesktop) return setSidebarOpen(true);
-      // Noted before the page behind goes inert, which takes focus away.
-      drawerOpener.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-      setDrawerOpen(true);
-    },
+    openSidebar: () => (isDesktop ? setSidebarOpen(true) : setDrawerOpen(true)),
   };
 
   return (
     <ShellContext.Provider value={shell}>
-      <SpaceBackground compact={!isDesktop} />
-      <div className="relative z-[1] flex h-full w-full overflow-hidden" inert={!isDesktop && drawerOpen}>
+      <div className="flex h-full w-full overflow-hidden bg-[var(--bg)]">
         {isDesktop && sidebarOpen && (
-          <div className="h-full w-[280px] shrink-0 py-3 pl-3">
+          <div className="h-full w-[260px] shrink-0 border-r border-[var(--line)]">
             <AppSidebar onNavigate={() => undefined} onClose={() => setSidebarOpen(false)} />
           </div>
         )}
@@ -126,20 +98,18 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div
             onClick={() => setDrawerOpen(false)}
             aria-hidden="true"
-            className={`fixed inset-0 z-40 transition-opacity duration-300 ${
+            className={`fixed inset-0 z-40 transition-opacity duration-200 ${
               drawerOpen ? "opacity-100" : "pointer-events-none opacity-0"
             }`}
             style={{ background: "var(--overlay-bg)" }}
           />
           <div
-            ref={drawerRef}
             role="dialog"
-            aria-modal="true"
             aria-label="Navigation"
             aria-hidden={!drawerOpen}
             inert={!drawerOpen}
-            className={`fixed inset-y-0 left-0 z-50 w-[300px] max-w-[86%] p-2 transition-transform duration-300 ease-[cubic-bezier(0.2,0.7,0.2,1)] ${
-              drawerOpen ? "translate-x-0" : "-translate-x-[105%]"
+            className={`fixed inset-y-0 left-0 z-50 w-[280px] max-w-[85%] border-r border-[var(--line)] shadow-2xl transition-transform duration-200 ease-out ${
+              drawerOpen ? "translate-x-0" : "-translate-x-full"
             }`}
           >
             {drawerMounted && (

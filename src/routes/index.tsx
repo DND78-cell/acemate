@@ -1,19 +1,20 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { ArrowUpRight, BookOpen, Brain, NotebookPen, Paperclip, Target, X, Zap, type LucideIcon } from "lucide-react";
+import { BookOpen, Code2, GraduationCap, PenLine, Plus, ScanText, X, type LucideIcon } from "lucide-react";
+import { AceMateLogo } from "@/components/AceMateLogo";
 import { useShell } from "@/components/AppShell";
 import { TopBar } from "@/components/TopBar";
 import { Composer, ModeToggle, ModelMenu } from "@/components/Composer";
+import { CornerButton } from "@/components/ui/corner-button";
+import { cn } from "@/lib/utils";
 import { ChatMessage } from "@/components/ChatMessage";
-import { Notice } from "@/components/Notice";
-import { AceMateOrb } from "@/components/ai/AceMateOrb";
 import { messageText, reasoningText, ThinkingActivity } from "@/components/ai/AiResponseActivity";
 import { useAuth } from "@/hooks/use-auth";
 import { saveChat, loadChat } from "@/lib/persistence";
 import { newId, useAceChat, type MessagePart, type UIMessage } from "@/lib/chat";
 import { currentChat, onChatRequest, rememberChat, takeChatRequest, type ChatRequest } from "@/lib/chat-nav";
 import { sampleErrorCopy } from "@/lib/claude";
-import { getImageLimits, IS_WEB } from "@/platform";
+import { getImageLimits } from "@/platform";
 import type { ImageLimits } from "@/platform/types";
 import { chatInstructions, tierFor } from "@/lib/prompts";
 import {
@@ -25,52 +26,56 @@ import {
   type EffortMode,
 } from "@/lib/settings";
 
-type QuickAction = {
+type Starter = {
   key: string;
   label: string;
-  desc: string;
   icon: LucideIcon;
   prompts?: string[];
   to?: "/notes" | "/companion";
 };
 
-const QUICK_ACTIONS: QuickAction[] = [
-  { key: "study", label: "Study", desc: "Work through your own notes", icon: BookOpen, to: "/companion" },
+const STARTERS: Starter[] = [
   {
-    key: "explain",
-    label: "Explain",
-    desc: "Understand any topic simply",
-    icon: Brain,
+    key: "write",
+    label: "Write",
+    icon: PenLine,
+    prompts: [
+      "Write a birthday message for my friend",
+      "Draft a polite follow-up email to my teacher",
+      "Help me write the opening of a short story",
+    ],
+  },
+  {
+    key: "learn",
+    label: "Learn",
+    icon: GraduationCap,
     prompts: [
       "Explain black holes simply",
-      "Explain photosynthesis step by step",
-      "Explain Newton's three laws with everyday examples",
-    ],
-  },
-  { key: "notes", label: "Make notes", desc: "Chapter photos to notes", icon: NotebookPen, to: "/notes" },
-  {
-    key: "quiz",
-    label: "Quiz me",
-    desc: "Test yourself in minutes",
-    icon: Zap,
-    prompts: [
       "Quiz me on world capitals",
-      "Give me 5 multiple-choice questions on the French Revolution",
-      "Test me on the first 20 elements of the periodic table",
+      "Explain photosynthesis step by step",
     ],
   },
   {
-    key: "plan",
-    label: "Study plan",
-    desc: "Plan your revision week",
-    icon: Target,
+    key: "code",
+    label: "Code",
+    icon: Code2,
     prompts: [
-      "Make me a 7-day study plan for my physics exam",
-      "Plan my revision for 3 subjects over the next 2 weeks",
-      "Build a daily study timetable around school hours",
+      "Help me fix a Python error",
+      "Explain what a REST API is, with an example",
+      "Write a function that checks whether a word is a palindrome",
     ],
   },
+  { key: "notes", label: "Chapter notes", icon: ScanText, to: "/notes" },
+  { key: "study", label: "Study companion", icon: BookOpen, to: "/companion" },
 ];
+
+/** Starter buttons take the theme's own main color instead of neon yellow. */
+const STARTER_ACCENT: Record<string, string> = {
+  graphite: "#ececec",
+  ocean: "#e6eef7",
+  warm: "#f0ebe5",
+  light: "#e2e2df",
+};
 
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 type Attachment = { file: File; dataUrl: string; previewUrl: string };
@@ -94,9 +99,7 @@ function titleOf(messages: UIMessage[]): string {
 
 function greeting(name: string): string {
   const h = new Date().getHours();
-  // Website accounts are named by email; greet them by the part before the @.
-  const raw = name.includes("@") ? name.split("@")[0] : (name.trim().split(/\s+/)[0] ?? "");
-  const first = name.includes("@") ? raw.charAt(0).toUpperCase() + raw.slice(1) : raw;
+  const first = name.trim().split(/\s+/)[0] ?? "";
   if (h >= 22 || h < 5) return first ? `Still up, ${first}?` : "Still up?";
   const base = h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
   return first ? `${base}, ${first}` : base;
@@ -345,9 +348,15 @@ export function ChatPage() {
   const notices = (
     <>
       {error && (
-        <Notice>{sampleErrorCopy(error, "Something went wrong. Your message is still in the box, so you can try again.")}</Notice>
+        <div className="rounded-xl border border-[var(--danger)]/35 bg-[var(--danger)]/10 px-3.5 py-2.5 text-[13.5px] text-[var(--fg)]">
+          {sampleErrorCopy(error, "Something went wrong. Your message is still in the box — try again.")}
+        </div>
       )}
-      {fallbackNotice && <Notice tone="info">{fallbackNotice}</Notice>}
+      {fallbackNotice && (
+        <div className="rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3.5 py-2.5 text-[13.5px] text-[var(--fg-muted)]">
+          {fallbackNotice}
+        </div>
+      )}
     </>
   );
 
@@ -361,7 +370,9 @@ export function ChatPage() {
         onChange={onFileChosen}
       />
       {attachError && (
-        <Notice className="mb-2">{attachError}</Notice>
+        <div className="mb-2 rounded-xl border border-[var(--danger)]/35 bg-[var(--danger)]/10 px-3.5 py-2 text-[13px] text-[var(--fg)]">
+          {attachError}
+        </div>
       )}
       <Composer
         value={input}
@@ -370,9 +381,8 @@ export function ChatPage() {
         onStop={stop}
         busy={isLoading}
         canSend={canSend}
-        placeholder={showEmpty ? "Ask AceMate…" : "Ask a follow-up…"}
+        placeholder={showEmpty ? "How can I help you today?" : "Reply to AceMate…"}
         inputRef={inputRef}
-        voice={IS_WEB}
         top={
           attachment && (
             <div className="mb-2 flex">
@@ -386,7 +396,7 @@ export function ChatPage() {
                   type="button"
                   onClick={clearAttachment}
                   aria-label="Remove image"
-                  className="absolute -right-1.5 -top-1.5 grid h-5 w-5 place-items-center rounded-full bg-[var(--surface)] text-[var(--fg)] shadow-[0_0_0_1px_var(--line-strong)]"
+                  className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[var(--primary-bg)] text-[var(--primary-fg)]"
                 >
                   <X className="h-3 w-3" strokeWidth={2.5} />
                 </button>
@@ -400,12 +410,12 @@ export function ChatPage() {
               <button
                 type="button"
                 onClick={() => fileRef.current?.click()}
-                aria-label="Attach an image"
-                title="Attach an image"
+                aria-label="Add an image"
+                title="Add an image"
                 disabled={isLoading}
-                className="round-btn"
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--line)] text-[var(--fg-muted)] transition-colors hover:bg-[var(--surface-hover)] hover:text-[var(--fg)] disabled:opacity-40"
               >
-                <Paperclip className="h-[18px] w-[18px]" strokeWidth={1.6} />
+                <Plus className="h-4 w-4" strokeWidth={2} />
               </button>
             )}
             <ModeToggle
@@ -431,49 +441,41 @@ export function ChatPage() {
     </>
   );
 
-  const openAction = QUICK_ACTIONS.find((a) => a.key === openStarter);
-  const quickActions = (
-    <div className="w-full">
-      <div className="grid w-full grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-        {QUICK_ACTIONS.map((a) => {
-          const Icon = a.icon;
-          const active = a.key === openStarter;
+  const openStarterDef = STARTERS.find((s) => s.key === openStarter);
+  const starters = (
+    <div className="mt-4">
+      <div className="flex flex-wrap justify-center">
+        {STARTERS.map((s) => {
+          const Icon = s.icon;
+          const active = s.key === openStarter;
           return (
-            <button
-              key={a.key}
+            <CornerButton
+              key={s.key}
               type="button"
-              className="quick-card last:col-span-2 max-sm:flex-row max-sm:items-center max-sm:gap-3 max-sm:p-3 sm:last:col-span-1"
-              aria-expanded={a.prompts ? active : undefined}
+              accentColor={STARTER_ACCENT[settings.theme] ?? STARTER_ACCENT.graphite}
+              icon={<Icon className="corner-btn-icon" strokeWidth={1.75} aria-hidden="true" />}
+              wrapperClassName={cn("corner-compact", active && "corner-active")}
+              aria-expanded={s.prompts ? active : undefined}
               onClick={() => {
-                if (a.to) void navigate({ to: a.to });
-                else setOpenStarter(active ? null : a.key);
+                if (s.to) void navigate({ to: s.to });
+                else setOpenStarter(active ? null : s.key);
               }}
             >
-              <span className="quick-icon">
-                <Icon className="h-[18px] w-[18px]" strokeWidth={1.6} aria-hidden="true" />
-              </span>
-              <span className="flex flex-col gap-0.5">
-                <span className="text-[14.5px] font-medium text-[var(--fg)]">{a.label}</span>
-                <span className="hidden text-[12.5px] leading-snug text-[var(--fg-muted)] sm:block">{a.desc}</span>
-              </span>
-            </button>
+              {s.label}
+            </CornerButton>
           );
         })}
       </div>
-      {openAction?.prompts && (
-        <ul key={openAction.key} className="glass msg-in mt-3 overflow-hidden rounded-[18px] text-left">
-          {openAction.prompts.map((p, i) => (
+      {openStarterDef?.prompts && (
+        <ul className="mt-3 overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--surface)]">
+          {openStarterDef.prompts.map((p, i) => (
             <li key={p} className={i ? "border-t border-[var(--line)]" : ""}>
               <button
                 type="button"
                 onClick={() => submit(p)}
-                className="group flex w-full items-center gap-3 px-4 py-3 text-left text-[14px] text-[var(--fg)] transition-colors duration-200 hover:bg-[var(--surface-hover)]"
+                className="w-full px-4 py-3 text-left text-[14px] text-[var(--fg)] transition-colors hover:bg-[var(--surface-hover)]"
               >
-                <span className="flex-1">{p}</span>
-                <ArrowUpRight
-                  className="h-4 w-4 shrink-0 text-[var(--fg-faint)] transition-transform duration-200 group-hover:-translate-y-px group-hover:translate-x-px group-hover:text-[var(--accent-ink)]"
-                  strokeWidth={1.6}
-                />
+                {p}
               </button>
             </li>
           ))}
@@ -482,40 +484,42 @@ export function ChatPage() {
     </div>
   );
 
-  const bottomBar = (
-    <div className="shrink-0 px-3 pb-3 sm:px-6 sm:pb-5">
-      <div className="mx-auto w-full max-w-[780px]">
-        {composer("up")}
-        <p className="pt-2 text-center text-[11.5px] text-[var(--fg-faint)]">
-          AceMate can make mistakes. Check important facts.
-        </p>
-      </div>
-    </div>
+  const heading = (
+    <h1 className="flex items-center justify-center gap-3 text-center">
+      <AceMateLogo size={shell.isDesktop ? 34 : 28} />
+      <span className="font-serif text-[32px] font-normal leading-tight text-[var(--fg)] sm:text-[40px]">
+        {greeting(user?.name ?? "")}
+      </span>
+    </h1>
   );
 
   if (showEmpty) {
     return (
       <div className="flex h-full flex-col">
         <TopBar />
-        <div className="scrollbar-thin thread-fade min-h-0 flex-1 overflow-y-auto">
-          <div className="mx-auto flex min-h-full w-full max-w-[940px] flex-col items-center justify-center px-5 pb-10 pt-4 text-center">
-            <AceMateOrb activity="idle" size={shell.isDesktop ? 72 : 56} showLabel={false} interactive />
-            {user?.name && (
-              <p className="mt-9 text-[14px] text-[var(--fg-muted)]">{greeting(user.name)}</p>
-            )}
-            <h1
-              className={`font-display text-[30px] font-semibold leading-[1.12] text-[var(--fg)] sm:text-[44px] ${
-                user?.name ? "mt-2" : "mt-10"
-              }`}
-            >
-              What are we learning today?
-            </h1>
-            <p className="mt-3 text-[16px] text-[var(--fg-muted)] sm:text-[18px]">Ask, study, practice, or create.</p>
-            <div className="mt-10 w-full">{quickActions}</div>
-            <div className="mt-4 flex w-full max-w-[780px] flex-col gap-2 text-left empty:hidden">{notices}</div>
+        {shell.isDesktop ? (
+          <div className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-y-auto px-6 pb-[12vh]">
+            <div className="w-full max-w-[680px]">
+              <div className="mb-8">{heading}</div>
+              <div className="mb-3 flex flex-col gap-2 empty:hidden">{notices}</div>
+              {composer("down")}
+              {starters}
+            </div>
           </div>
-        </div>
-        {bottomBar}
+        ) : (
+          <>
+            <div className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-y-auto px-4">
+              <div className="w-full">
+                {heading}
+                {starters}
+              </div>
+            </div>
+            <div className="shrink-0 px-3 pb-3">
+              <div className="mb-2 flex flex-col gap-2 empty:hidden">{notices}</div>
+              {composer("up")}
+            </div>
+          </>
+        )}
       </div>
     );
   }
@@ -523,9 +527,9 @@ export function ChatPage() {
   return (
     <div className="flex h-full flex-col">
       <TopBar title={titleOf(messages)} />
-      <div ref={scrollerRef} className="scrollbar-thin thread-fade min-h-0 flex-1 overflow-y-auto">
+      <div ref={scrollerRef} className="scrollbar-thin min-h-0 flex-1 overflow-y-auto">
         <div
-          className="thread mx-auto flex w-full max-w-[780px] flex-col gap-8 px-4 pb-10 pt-4 sm:px-6"
+          className="mx-auto flex max-w-[736px] flex-col gap-6 px-4 pb-8 pt-4 sm:px-6"
           style={{ fontSize: TEXT_SIZE_PX[settings.textSize] }}
         >
           {messages.map((m) => (
@@ -542,7 +546,14 @@ export function ChatPage() {
           <div className="flex flex-col gap-2 empty:hidden">{notices}</div>
         </div>
       </div>
-      {bottomBar}
+      <div className="shrink-0 px-3 pb-2 sm:px-4">
+        <div className="mx-auto max-w-[736px]">
+          {composer("up")}
+          <p className="py-2 text-center text-[11.5px] text-[var(--fg-faint)]">
+            AceMate can make mistakes — double-check important answers.
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
