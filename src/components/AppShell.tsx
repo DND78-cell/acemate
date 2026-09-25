@@ -136,8 +136,8 @@ export function AppShell({ children }: { children: ReactNode }) {
             aria-label="Navigation"
             aria-hidden={!drawerOpen}
             inert={!drawerOpen}
-            className={`fixed inset-y-0 left-0 z-50 w-[280px] max-w-[85%] border-r border-[var(--line)] shadow-2xl transition-transform duration-200 ease-out ${
-              drawerOpen ? "translate-x-0" : "-translate-x-full"
+            className={`fixed inset-y-0 left-0 z-50 w-[280px] max-w-[85%] border-r border-[var(--line)] transition-transform duration-200 ease-out ${
+              drawerOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full"
             }`}
           >
             {drawerMounted && (
