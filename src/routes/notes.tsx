@@ -11,7 +11,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { AceMateLogo } from "@/components/AceMateLogo";
-import { AiActivityIndicator } from "@/components/ai/AiActivityIndicator";
+import { AceMateOrb } from "@/components/ai/AceMateOrb";
 import { useSettings } from "@/lib/settings";
 import { generateNotes, type NotesResult } from "@/lib/notes";
 import { getImageLimits, IS_WEB } from "@/platform";
@@ -349,7 +349,7 @@ export function NotesPage() {
       <TopBar />
       <div className="scrollbar-thin min-h-0 flex-1 overflow-y-auto">
     <div className="mx-auto flex w-full max-w-[640px] flex-col px-5">
-      <h1 className="px-1 pt-4 pb-2 text-[28px] font-semibold leading-tight tracking-[-0.02em] text-[var(--fg)]">
+      <h1 className="font-serif px-1 pt-4 pb-2 text-[34px] font-normal leading-tight text-[var(--fg)]">
         Chapter Notes
       </h1>
       <p className="px-1 pb-7 text-[14.5px] text-[var(--fg-muted)]">
@@ -485,7 +485,7 @@ export function NotesPage() {
 
           {isBusy && (
             <div className="mt-4 flex justify-center py-4">
-              <AiActivityIndicator activity="reading" centered />
+              <AceMateOrb activity="reading" size={64} centered />
             </div>
           )}
 
@@ -598,7 +598,7 @@ function ResultView({
         <AceMateLogo size={14} />
         AceMate notes
       </div>
-      <div className="mb-5 text-[23px] font-semibold leading-tight tracking-[-0.01em] text-[var(--fg)]">
+      <div className="font-serif mb-5 text-[26px] font-normal leading-tight text-[var(--fg)]">
         {result.title}
       </div>
 
@@ -690,7 +690,7 @@ function SummaryPanel({
     <div className="glass rounded-xl p-6 sm:p-7">
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
-          <h2 className="text-[21px] font-semibold leading-tight tracking-[-0.01em] text-[var(--fg)]">
+          <h2 className="font-serif text-[24px] font-normal leading-tight text-[var(--fg)]">
             {title}
           </h2>
           {subject.trim() && (
@@ -847,7 +847,7 @@ function QuizPanel({
     );
     return (
       <div className="glass flex flex-col items-center rounded-2xl px-5 py-8 text-center">
-        <div className="text-[34px] font-semibold tracking-[-0.02em] text-[var(--fg)]">
+        <div className="font-serif text-[36px] font-normal text-[var(--fg)]">
           {score} / {quiz.length}
         </div>
         <div className="mt-1 text-[14px] text-[color:var(--ice-dim)]">

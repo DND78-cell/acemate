@@ -4,9 +4,9 @@ import {
   BookOpen,
   Code2,
   PanelLeftClose,
-  Plus,
   ScanText,
   Settings as SettingsIcon,
+  SquarePen,
   LogIn,
   UserRound,
 } from "lucide-react";
@@ -26,7 +26,7 @@ const PAGES = [
 const rowClass = (active: boolean) =>
   `flex h-9 w-full items-center gap-2.5 rounded-lg px-2.5 text-left text-[14px] transition-colors ${
     active
-      ? "bg-[var(--accent-soft)] font-medium text-[var(--accent-ink)]"
+      ? "bg-[var(--surface-hover)] text-[var(--fg)]"
       : "text-[var(--fg)] hover:bg-[var(--surface-hover)]"
   }`;
 
@@ -76,43 +76,36 @@ export function AppSidebar({
         <button
           type="button"
           onClick={newChat}
-          className="flex items-center gap-2.5 rounded-md text-[16px] font-semibold tracking-[-0.01em] text-[var(--fg)]"
+          className="flex items-center gap-2 rounded-md text-[15px] font-semibold tracking-[-0.01em] text-[var(--fg)]"
         >
-          <AceMateLogo size={24} />
+          <AceMateLogo size={18} />
           AceMate
         </button>
         <button
           type="button"
           onClick={onClose}
           aria-label="Close sidebar"
-          data-drawer-focus
           className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--fg-muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--fg)]"
         >
           <PanelLeftClose className="h-[18px] w-[18px]" strokeWidth={1.75} />
         </button>
       </div>
 
-      <div className="px-3 pb-3 pt-1">
-        <button
-          type="button"
-          onClick={newChat}
-          className="flex h-9 w-full items-center justify-center gap-2 rounded-lg bg-[var(--accent)] text-[14px] font-medium text-white transition-colors hover:bg-[var(--accent-hover)]"
-        >
-          <Plus className="h-4 w-4" strokeWidth={2.25} />
+      <div className="flex flex-col gap-0.5 px-2 pt-1">
+        <button type="button" onClick={newChat} className={rowClass(false)}>
+          <SquarePen className="h-4 w-4 text-[var(--fg-muted)]" strokeWidth={1.75} />
           New chat
         </button>
-      </div>
-
-      <div className="flex flex-col gap-0.5 px-2">
         {PAGES.map((page) => {
           const Icon = page.icon;
-          const active = pathname.startsWith(page.to);
           return (
-            <Link key={page.to} to={page.to} onClick={onNavigate} className={rowClass(active)}>
-              <Icon
-                className={`h-4 w-4 ${active ? "text-[var(--accent)]" : "text-[var(--fg-muted)]"}`}
-                strokeWidth={1.9}
-              />
+            <Link
+              key={page.to}
+              to={page.to}
+              onClick={onNavigate}
+              className={rowClass(pathname.startsWith(page.to))}
+            >
+              <Icon className="h-4 w-4 text-[var(--fg-muted)]" strokeWidth={1.75} />
               {page.label}
             </Link>
           );
@@ -120,7 +113,7 @@ export function AppSidebar({
       </div>
 
       <div className="scrollbar-thin mt-5 min-h-0 flex-1 overflow-y-auto px-2 pb-3">
-        <div className="px-2.5 pb-1.5 text-[12px] font-medium text-[var(--fg-faint)]">Recent chats</div>
+        <div className="px-2.5 pb-1.5 text-[12px] font-medium text-[var(--fg-faint)]">Recents</div>
         {!user ? (
           <p className="px-2.5 py-1 text-[13px] leading-snug text-[var(--fg-faint)]">
             {loading
@@ -151,8 +144,8 @@ export function AppSidebar({
       <div className="shrink-0 border-t border-[var(--line)] px-2 py-2">
         {!user && !loading && IS_WEB ? (
           <Link to="/auth" onClick={onNavigate} className={`${rowClass(pathname === "/auth")} h-11`}>
-            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--accent-soft)]">
-              <LogIn className="h-4 w-4 text-[var(--accent)]" strokeWidth={1.9} />
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--surface-hover)]">
+              <LogIn className="h-4 w-4 text-[var(--fg-muted)]" strokeWidth={1.75} />
             </span>
             <span className="min-w-0 flex-1 leading-tight">
               <span className="block truncate text-[13.5px]">Sign in</span>
@@ -164,7 +157,7 @@ export function AppSidebar({
             {user?.avatarUrl ? (
               <img src={user.avatarUrl} alt="" className="h-7 w-7 shrink-0 rounded-full object-cover" />
             ) : (
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--accent-soft)] text-[12px] font-semibold uppercase text-[var(--accent-ink)]">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--surface-hover)] text-[12px] font-medium uppercase text-[var(--fg)]">
                 {user ? (user.name || "?").slice(0, 1) : <UserRound className="h-4 w-4 text-[var(--fg-muted)]" strokeWidth={1.75} />}
               </span>
             )}

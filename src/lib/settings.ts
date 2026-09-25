@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 export type ResponseStyle = "concise" | "balanced" | "detailed";
 export type TextSize = "small" | "medium" | "large";
-export type Theme = "light" | "dark";
+export type Theme = "graphite" | "ocean" | "warm" | "light";
 export type ModelId = "aceOne" | "aceUltra";
 export type EffortMode = "quick" | "balanced" | "max";
 
@@ -16,14 +16,13 @@ export type Settings = {
 };
 
 const KEY = "acemate.settings.v1";
-// Light is the default. Anyone who chose one of the earlier dark themes
-// (Graphite, Ocean, Warm) is on Dark.
+// v2: the redesign starts everyone on Graphite; later choices are kept.
 export const THEME_KEY = "acemate-theme-v2";
 
 const DEFAULTS: Settings = {
   responseStyle: "balanced",
   textSize: "medium",
-  theme: "light",
+  theme: "graphite",
   model: "aceOne",
   effort: "balanced",
   codeMode: false,
@@ -55,9 +54,8 @@ function isEffort(v: unknown): v is EffortMode {
   return v === "quick" || v === "balanced" || v === "max";
 }
 
-function savedThemeOf(v: string | null): Theme {
-  if (!v) return DEFAULTS.theme;
-  return v === "light" ? "light" : "dark";
+function isTheme(v: unknown): v is Theme {
+  return v === "graphite" || v === "ocean" || v === "warm" || v === "light";
 }
 
 function read(): Settings {
@@ -81,7 +79,7 @@ function read(): Settings {
         parsed.textSize === "medium"
           ? parsed.textSize
           : DEFAULTS.textSize,
-      theme: savedThemeOf(savedTheme),
+      theme: isTheme(savedTheme) ? savedTheme : DEFAULTS.theme,
       model: isModelId(parsed.model) ? parsed.model : DEFAULTS.model,
       effort: isEffort(parsed.effort) ? parsed.effort : DEFAULTS.effort,
       codeMode:

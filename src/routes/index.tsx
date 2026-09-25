@@ -1,20 +1,12 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import {
-  ArrowUpRight,
-  BookOpen,
-  Code2,
-  GraduationCap,
-  Paperclip,
-  PenLine,
-  ScanText,
-  X,
-  type LucideIcon,
-} from "lucide-react";
+import { BookOpen, Code2, GraduationCap, PenLine, Plus, ScanText, X, type LucideIcon } from "lucide-react";
 import { AceMateLogo } from "@/components/AceMateLogo";
 import { useShell } from "@/components/AppShell";
 import { TopBar } from "@/components/TopBar";
 import { Composer, ModeToggle, ModelMenu } from "@/components/Composer";
+import { CornerButton } from "@/components/ui/corner-button";
+import { cn } from "@/lib/utils";
 import { ChatMessage } from "@/components/ChatMessage";
 import { messageText, reasoningText, ThinkingActivity } from "@/components/ai/AiResponseActivity";
 import { useAuth } from "@/hooks/use-auth";
@@ -37,7 +29,6 @@ import {
 type Starter = {
   key: string;
   label: string;
-  desc: string;
   icon: LucideIcon;
   prompts?: string[];
   to?: "/notes" | "/companion";
@@ -47,7 +38,6 @@ const STARTERS: Starter[] = [
   {
     key: "write",
     label: "Write",
-    desc: "Emails, messages and stories",
     icon: PenLine,
     prompts: [
       "Write a birthday message for my friend",
@@ -58,7 +48,6 @@ const STARTERS: Starter[] = [
   {
     key: "learn",
     label: "Learn",
-    desc: "Explanations and quizzes",
     icon: GraduationCap,
     prompts: [
       "Explain black holes simply",
@@ -69,7 +58,6 @@ const STARTERS: Starter[] = [
   {
     key: "code",
     label: "Code",
-    desc: "Fix and explain code",
     icon: Code2,
     prompts: [
       "Help me fix a Python error",
@@ -77,9 +65,17 @@ const STARTERS: Starter[] = [
       "Write a function that checks whether a word is a palindrome",
     ],
   },
-  { key: "notes", label: "Chapter notes", desc: "Photos of pages to notes", icon: ScanText, to: "/notes" },
-  { key: "study", label: "Study companion", desc: "Ask about your own notes", icon: BookOpen, to: "/companion" },
+  { key: "notes", label: "Chapter notes", icon: ScanText, to: "/notes" },
+  { key: "study", label: "Study companion", icon: BookOpen, to: "/companion" },
 ];
+
+/** Starter buttons take the theme's own main color instead of neon yellow. */
+const STARTER_ACCENT: Record<string, string> = {
+  graphite: "#ececec",
+  ocean: "#e6eef7",
+  warm: "#f0ebe5",
+  light: "#e2e2df",
+};
 
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 type Attachment = { file: File; dataUrl: string; previewUrl: string };
@@ -364,7 +360,7 @@ export function ChatPage() {
     </>
   );
 
-  const composer = (
+  const composer = (placement: "up" | "down") => (
     <>
       <input
         ref={fileRef}
@@ -385,7 +381,7 @@ export function ChatPage() {
         onStop={stop}
         busy={isLoading}
         canSend={canSend}
-        placeholder={showEmpty ? "Ask AceMate anything…" : "Ask a follow-up…"}
+        placeholder={showEmpty ? "How can I help you today?" : "Reply to AceMate…"}
         inputRef={inputRef}
         top={
           attachment && (
@@ -417,9 +413,9 @@ export function ChatPage() {
                 aria-label="Add an image"
                 title="Add an image"
                 disabled={isLoading}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--fg-muted)] transition-colors hover:bg-[var(--surface-hover)] hover:text-[var(--fg)] disabled:opacity-40"
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--line)] text-[var(--fg-muted)] transition-colors hover:bg-[var(--surface-hover)] hover:text-[var(--fg)] disabled:opacity-40"
               >
-                <Paperclip className="h-[18px] w-[18px]" strokeWidth={1.9} />
+                <Plus className="h-4 w-4" strokeWidth={2} />
               </button>
             )}
             <ModeToggle
@@ -438,7 +434,7 @@ export function ChatPage() {
             onModel={(v) => updateSettings({ model: v })}
             effort={settings.effort}
             onEffort={(v) => updateSettings({ effort: v })}
-            placement="up"
+            placement={placement}
           />
         }
       />
@@ -446,39 +442,27 @@ export function ChatPage() {
   );
 
   const openStarterDef = STARTERS.find((s) => s.key === openStarter);
-  const tools = (
-    <div className="mt-7">
-      <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+  const starters = (
+    <div className="mt-4">
+      <div className="flex flex-wrap justify-center">
         {STARTERS.map((s) => {
           const Icon = s.icon;
           const active = s.key === openStarter;
           return (
-            <button
+            <CornerButton
               key={s.key}
               type="button"
+              accentColor={STARTER_ACCENT[settings.theme] ?? STARTER_ACCENT.graphite}
+              icon={<Icon className="corner-btn-icon" strokeWidth={1.75} aria-hidden="true" />}
+              wrapperClassName={cn("corner-compact", active && "corner-active")}
               aria-expanded={s.prompts ? active : undefined}
               onClick={() => {
                 if (s.to) void navigate({ to: s.to });
                 else setOpenStarter(active ? null : s.key);
               }}
-              className={`flex items-center gap-3 rounded-xl border px-3.5 py-3 text-left transition-colors ${
-                active
-                  ? "border-[var(--accent)] bg-[var(--accent-soft)]"
-                  : "border-[var(--line)] bg-[var(--surface)] hover:border-[var(--line-strong)] hover:bg-[var(--surface-hover)]"
-              }`}
             >
-              <span
-                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[var(--accent)] ${
-                  active ? "bg-[var(--surface)]" : "bg-[var(--accent-soft)]"
-                }`}
-              >
-                <Icon className="h-[18px] w-[18px]" strokeWidth={1.9} aria-hidden="true" />
-              </span>
-              <span className="min-w-0">
-                <span className="block text-[14.5px] font-medium text-[var(--fg)]">{s.label}</span>
-                <span className="block text-[12.5px] leading-snug text-[var(--fg-muted)]">{s.desc}</span>
-              </span>
-            </button>
+              {s.label}
+            </CornerButton>
           );
         })}
       </div>
@@ -489,10 +473,9 @@ export function ChatPage() {
               <button
                 type="button"
                 onClick={() => submit(p)}
-                className="flex w-full items-center gap-3 px-4 py-3 text-left text-[14px] text-[var(--fg)] transition-colors hover:bg-[var(--surface-hover)]"
+                className="w-full px-4 py-3 text-left text-[14px] text-[var(--fg)] transition-colors hover:bg-[var(--surface-hover)]"
               >
-                <span className="min-w-0 flex-1">{p}</span>
-                <ArrowUpRight className="h-4 w-4 shrink-0 text-[var(--fg-faint)]" aria-hidden="true" />
+                {p}
               </button>
             </li>
           ))}
@@ -501,33 +484,42 @@ export function ChatPage() {
     </div>
   );
 
-  const bottomBar = (
-    <div className="shrink-0 px-3 pb-2 sm:px-4">
-      <div className="mx-auto max-w-[736px]">
-        {composer}
-        <p className="py-2 text-center text-[11.5px] text-[var(--fg-faint)]">
-          AceMate can make mistakes. Check important answers.
-        </p>
-      </div>
-    </div>
+  const heading = (
+    <h1 className="flex items-center justify-center gap-3 text-center">
+      <AceMateLogo size={shell.isDesktop ? 34 : 28} />
+      <span className="font-serif text-[32px] font-normal leading-tight text-[var(--fg)] sm:text-[40px]">
+        {greeting(user?.name ?? "")}
+      </span>
+    </h1>
   );
 
   if (showEmpty) {
     return (
       <div className="flex h-full flex-col">
         <TopBar />
-        <div className="scrollbar-thin min-h-0 flex-1 overflow-y-auto">
-          <div className="mx-auto flex min-h-full w-full max-w-[736px] flex-col justify-center px-4 py-8 sm:px-6">
-            <AceMateLogo size={40} />
-            <p className="mt-5 text-[15px] text-[var(--fg-muted)]">{greeting(user?.name ?? "")}</p>
-            <h1 className="mt-1 text-[26px] font-semibold leading-tight tracking-[-0.02em] text-[var(--fg)] sm:text-[30px]">
-              What do you want to study today?
-            </h1>
-            {tools}
-            <div className="mt-4 flex flex-col gap-2 empty:hidden">{notices}</div>
+        {shell.isDesktop ? (
+          <div className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-y-auto px-6 pb-[12vh]">
+            <div className="w-full max-w-[680px]">
+              <div className="mb-8">{heading}</div>
+              <div className="mb-3 flex flex-col gap-2 empty:hidden">{notices}</div>
+              {composer("down")}
+              {starters}
+            </div>
           </div>
-        </div>
-        {bottomBar}
+        ) : (
+          <>
+            <div className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-y-auto px-4">
+              <div className="w-full">
+                {heading}
+                {starters}
+              </div>
+            </div>
+            <div className="shrink-0 px-3 pb-3">
+              <div className="mb-2 flex flex-col gap-2 empty:hidden">{notices}</div>
+              {composer("up")}
+            </div>
+          </>
+        )}
       </div>
     );
   }
@@ -554,7 +546,14 @@ export function ChatPage() {
           <div className="flex flex-col gap-2 empty:hidden">{notices}</div>
         </div>
       </div>
-      {bottomBar}
+      <div className="shrink-0 px-3 pb-2 sm:px-4">
+        <div className="mx-auto max-w-[736px]">
+          {composer("up")}
+          <p className="py-2 text-center text-[11.5px] text-[var(--fg-faint)]">
+            AceMate can make mistakes — double-check important answers.
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

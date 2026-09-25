@@ -1,17 +1,5 @@
 import { useEffect, useState } from "react";
-import { ChevronRight } from "lucide-react";
-import { AceMateLogo } from "@/components/AceMateLogo";
-import { AiActivityIndicator } from "./AiActivityIndicator";
-
-/** The small name line over each of AceMate's answers. */
-export function AnswerHeader() {
-  return (
-    <div className="mb-2 flex items-center gap-2 text-[13.5px] font-semibold text-[var(--fg)]">
-      <AceMateLogo size={20} />
-      AceMate
-    </div>
-  );
-}
+import { AceMateOrb } from "./AceMateOrb";
 
 export function reasoningText(parts: Array<{ type: string; text?: string }>): string {
   return parts
@@ -34,7 +22,7 @@ function latestReasoningLine(reasoning: string): string {
 
 function ReasoningDetails({ text }: { text: string }) {
   return (
-    <div className="mt-2 max-h-40 overflow-y-auto whitespace-pre-wrap border-l-2 border-[var(--line-strong)] pl-3 text-[12.5px] leading-relaxed text-[var(--fg-muted)]">
+    <div className="mt-2 max-h-40 overflow-y-auto whitespace-pre-wrap pl-7 text-xs leading-relaxed text-[color:var(--ice-dim)]">
       {text}
     </div>
   );
@@ -58,21 +46,20 @@ export function ThinkingActivity({
   }, [startedAt]);
 
   return (
-    <div role="status" aria-live="polite" className="w-full">
-      <AnswerHeader />
-      <div className="flex min-w-0 items-center gap-2.5 text-[13px] text-[var(--fg-muted)]">
-        <AiActivityIndicator activity="thinking" showLabel={false} />
+    <div role="status" aria-live="polite" className="max-w-[92%] py-1 pl-1">
+      <div className="flex min-w-0 items-center gap-2 text-xs text-[color:var(--ice-dim)]">
+        <AceMateOrb activity="thinking" size={20} showLabel={false} />
         <span className="min-w-0 flex-1 truncate">{reasoning ? latestReasoningLine(reasoning) : "Thinking…"}</span>
-        <span className="shrink-0 tabular-nums text-[var(--fg-faint)]">{elapsed}s</span>
+        <span className="shrink-0 tabular-nums">{elapsed}s</span>
         {reasoning && (
           <button
             type="button"
             aria-label={open ? "Hide reasoning" : "Show reasoning"}
             aria-expanded={open}
             onClick={() => setOpen((value) => !value)}
-            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md hover:bg-[var(--surface-hover)] hover:text-[var(--fg)]"
+            className={`flex h-5 w-5 shrink-0 items-center justify-center text-base transition-transform ${open ? "rotate-90" : ""}`}
           >
-            <ChevronRight className={`h-4 w-4 transition-transform ${open ? "rotate-90" : ""}`} />
+            ›
           </button>
         )}
       </div>
@@ -89,22 +76,22 @@ export function ThoughtDisclosure({
   reasoning: string;
 }) {
   const [open, setOpen] = useState(false);
-  const time = <span className="tabular-nums">{seconds}s</span>;
+  const label = <span className="tabular-nums">Thought for {seconds}s</span>;
 
   if (!reasoning) {
-    return <div className="mb-2 text-[12.5px] text-[var(--fg-muted)]">Answered in {time}</div>;
+    return <div className="mb-1 pl-1 text-xs text-[color:var(--ice-dim)]">{label}</div>;
   }
 
   return (
-    <div className="mb-2 text-[12.5px] text-[var(--fg-muted)]">
+    <div className="mb-1 pl-1 text-xs text-[color:var(--ice-dim)]">
       <button
         type="button"
         aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
-        className="inline-flex items-center gap-1 rounded-md hover:text-[var(--fg)]"
+        className="flex items-center gap-1.5"
       >
-        {open ? "Hide reasoning" : "Show reasoning"} · {time}
-        <ChevronRight className={`h-3.5 w-3.5 transition-transform ${open ? "rotate-90" : ""}`} />
+        {label}
+        <span className={`text-base transition-transform ${open ? "rotate-90" : ""}`}>›</span>
       </button>
       {open && <ReasoningDetails text={reasoning} />}
     </div>

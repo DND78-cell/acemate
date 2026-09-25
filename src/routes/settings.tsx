@@ -39,8 +39,10 @@ const RESPONSE_STYLE_OPTIONS: {
 ];
 
 const THEME_OPTIONS: { value: Theme; label: string; desc: string }[] = [
-  { value: "light", label: "Light", desc: "White and light grey with blue accents." },
-  { value: "dark", label: "Dark", desc: "Dark grey with blue accents. Easier on the eyes at night." },
+  { value: "graphite", label: "Graphite", desc: "Neutral charcoal greys with silver details." },
+  { value: "ocean", label: "Ocean", desc: "Deep navy with crisp ice-white details." },
+  { value: "warm", label: "Warm", desc: "Warm charcoal with terracotta accents." },
+  { value: "light", label: "Light", desc: "Soft cream with dark charcoal text." },
 ];
 
 const TEXT_SIZE_OPTIONS: { value: TextSize; label: string; desc: string }[] = [
@@ -90,7 +92,7 @@ export function SettingsPage() {
 
       {view === "root" && (
         <>
-          <h1 className="px-1 pt-4 pb-6 text-[28px] font-semibold leading-tight tracking-[-0.02em] text-[var(--fg)]">
+          <h1 className="font-serif px-1 pt-4 pb-6 text-[34px] font-normal leading-tight text-[var(--fg)]">
             Settings
           </h1>
 
@@ -303,7 +305,7 @@ function ChoiceView<T extends string>({
 }) {
   return (
     <>
-      <h1 className="px-1 pt-4 pb-6 text-[28px] font-semibold leading-tight tracking-[-0.02em] text-[var(--fg)]">
+      <h1 className="font-serif px-1 pt-4 pb-6 text-[34px] font-normal leading-tight text-[var(--fg)]">
         {title}
       </h1>
       <div className="flex flex-col gap-1">
@@ -356,10 +358,10 @@ function ChoiceView<T extends string>({
 function AboutView() {
   return (
     <div className="flex flex-1 flex-col items-center justify-center pt-4 pb-16 text-center">
-      <div className="mb-6">
-        <AceMateLogo size={72} />
+      <div className="logo-glow mb-6">
+        <AceMateLogo size={96} glow />
       </div>
-      <h1 className="text-[26px] font-semibold tracking-[-0.02em] text-[var(--fg)]">AceMate</h1>
+      <h1 className="font-serif text-[32px] font-normal text-[var(--fg)]">AceMate</h1>
       <p className="mt-1 text-sm text-[color:var(--ice-dim)]">Version 1.0</p>
       <p className="mt-6 max-w-xs text-base text-[color:var(--ice)]/90">
         Ask anything.

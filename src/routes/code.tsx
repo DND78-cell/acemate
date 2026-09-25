@@ -6,7 +6,7 @@ import { Composer, ModeToggle, ModelMenu } from "@/components/Composer";
 import { ChatMessage } from "@/components/ChatMessage";
 import { Markdown } from "@/components/Markdown";
 import { messageText, reasoningText, ThinkingActivity } from "@/components/ai/AiResponseActivity";
-import { AiActivityIndicator } from "@/components/ai/AiActivityIndicator";
+import { AceMateOrb } from "@/components/ai/AceMateOrb";
 import { useSettings, TEXT_SIZE_PX, type ModelId } from "@/lib/settings";
 import { newId, useAceChat } from "@/lib/chat";
 import { sampleErrorCopy } from "@/lib/claude";
@@ -89,7 +89,7 @@ function PageCard({
         {complete ? (
           <AppWindow className="h-[18px] w-[18px]" strokeWidth={1.75} />
         ) : (
-          <AiActivityIndicator activity="building" showLabel={false} />
+          <AceMateOrb activity="building" size={20} showLabel={false} />
         )}
       </span>
       <span className="min-w-0 flex-1">
@@ -292,7 +292,7 @@ export function CodePage() {
           <div className="mx-auto flex min-h-full max-w-[560px] flex-col justify-center px-5 py-10">
             <div className="flex items-center gap-3">
               <AceMateLogo size={26} />
-              <h1 className="text-[25px] font-semibold leading-tight tracking-[-0.02em] text-[var(--fg)]">
+              <h1 className="font-serif text-[30px] font-normal leading-tight text-[var(--fg)]">
                 What should we build?
               </h1>
             </div>
@@ -353,7 +353,7 @@ export function CodePage() {
             trailing={<ModelMenu model={model} onModel={setModel} />}
           />
           <p className="py-2 text-center text-[11.5px] text-[var(--fg-faint)]">
-            AceMate can make mistakes. Check important answers.
+            AceMate can make mistakes — double-check important answers.
           </p>
         </div>
       </div>
@@ -391,7 +391,7 @@ export function CodePage() {
       <div className="min-h-0 min-w-0 flex-1 overflow-hidden">
         {isBuildingHtml ? (
           <div className="flex h-full items-center justify-center">
-            <AiActivityIndicator activity="building" centered />
+            <AceMateOrb activity="building" size={64} centered />
           </div>
         ) : !html ? (
           <div className="flex h-full items-center justify-center px-6 text-center text-[14px] text-[var(--fg-muted)]">

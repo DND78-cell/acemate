@@ -1,26 +1,39 @@
 type Props = {
   size?: number;
+  glow?: boolean;
   className?: string;
 };
 
-/** AceMate's mark: a white "A" on a blue rounded square. `size` is its width and height in px. */
-export function AceMateLogo({ size = 32, className }: Props) {
+/**
+ * AceMate brand mark. Inline SVG of the outlined star. `size` sets height in px;
+ * width scales automatically to preserve the 528:420 aspect ratio. `glow` applies
+ * a soft ice-white drop-shadow halo.
+ */
+export function AceMateLogo({ size = 32, glow = false, className }: Props) {
+  const width = (size * 528) / 420;
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 32 32"
+      viewBox="-8 -8 528 420"
       role="img"
       aria-label="AceMate"
-      width={size}
       height={size}
-      style={{ width: size, height: size, flexShrink: 0 }}
+      width={width}
+      style={{
+        height: size,
+        width,
+        filter: glow
+          ? "var(--logo-inline-glow)"
+          : undefined,
+      }}
       className={className}
     >
-      <rect width="32" height="32" rx="8" fill="var(--accent)" />
       <path
-        d="M16 7 L24.5 25 H20.9 L19.2 21.2 H12.8 L11.1 25 H7.5 Z M14.1 18.2 H17.9 L16 13.8 Z"
-        fill="#fff"
-        fillRule="evenodd"
+        d="M158.0 394.5 L153.0 394.5 L148.5 388.0 L135.5 301.0 L132.5 293.0 L124.0 286.5 L104.0 289.5 L14.0 320.5 L8.5 320.0 L183.0 214.5 L198.0 203.5 L217.5 185.0 L224.5 176.0 L227.5 165.0 L223.0 160.5 L208.0 162.5 L107.0 203.5 L40.5 111.0 L38.5 103.0 L44.0 100.5 L170.0 123.5 L185.0 122.5 L198.5 110.0 L265.5 15.0 L273.0 8.5 L277.0 8.5 L280.5 15.0 L283.5 49.0 L291.5 87.0 L301.0 99.5 L311.0 103.5 L328.0 100.5 L501.0 41.5 L246.0 190.5 L225.0 205.5 L209.5 221.0 L201.5 235.0 L201.5 242.0 L206.0 245.5 L221.0 243.5 L322.0 202.5 L375.5 277.0 L387.5 296.0 L388.5 301.0 L384.0 304.5 L380.0 304.5 L256.0 282.5 L244.0 283.5 L233.5 292.0 L188.5 356.0 L158.0 394.5 Z"
+        fill="var(--logo-fill)"
+        stroke="var(--logo-stroke)"
+        strokeWidth="7"
+        strokeLinejoin="round"
       />
     </svg>
   );

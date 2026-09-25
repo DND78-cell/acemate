@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import { ArrowUp, Check, ChevronDown, Square } from "lucide-react";
+import { LiquidMetalIconButton } from "@/components/LiquidMetal";
 import {
   EFFORT_OPTIONS,
   MODEL_OPTIONS,
@@ -58,7 +59,7 @@ export function Composer({
         e.preventDefault();
         if (!busy) onSubmit();
       }}
-      className="rounded-2xl border border-[var(--line-strong)] bg-[var(--surface)] px-3 pb-2.5 pt-3 transition-[border-color,box-shadow] focus-within:border-[var(--accent)] focus-within:ring-[3px] focus-within:ring-[var(--accent-soft)]"
+      className="rounded-[22px] border border-[var(--line)] bg-[var(--surface)] px-3 pb-2.5 pt-3 transition-colors focus-within:border-[var(--line-strong)]"
       style={{ boxShadow: "var(--shadow-composer)" }}
     >
       {top}
@@ -83,17 +84,11 @@ export function Composer({
         <div className="flex-1" />
         {trailing}
         {busy && onStop ? (
-          <button
-            type="button"
-            onClick={onStop}
-            aria-label="Stop answering"
-            title="Stop"
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--fg)] text-[var(--bg)] transition-opacity hover:opacity-85"
-          >
+          <LiquidMetalIconButton type="button" onClick={onStop} boosted aria-label="Stop answering" title="Stop">
             <Square className="h-3 w-3" fill="currentColor" strokeWidth={0} />
-          </button>
+          </LiquidMetalIconButton>
         ) : (
-          <button
+          <LiquidMetalIconButton
             type="submit"
             aria-label="Send"
             title={canSend ? "Send" : "Type a message to send"}
@@ -106,14 +101,9 @@ export function Composer({
                 ref.current?.focus();
               }
             }}
-            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-colors ${
-              canSend
-                ? "bg-[var(--accent)] text-white hover:bg-[var(--accent-hover)]"
-                : "bg-[var(--surface-hover)] text-[var(--fg-faint)]"
-            }`}
           >
-            <ArrowUp className="h-[18px] w-[18px]" strokeWidth={2.25} />
-          </button>
+            <ArrowUp className="h-4 w-4" strokeWidth={2.25} />
+          </LiquidMetalIconButton>
         )}
       </div>
     </form>
@@ -143,7 +133,7 @@ export function ModeToggle<T extends string>({
             onClick={() => onChange(opt.value)}
             className={`h-full rounded-md px-2.5 text-[13px] transition-colors ${
               active
-                ? "bg-[var(--accent-soft)] font-medium text-[var(--accent-ink)]"
+                ? "bg-[var(--surface-hover)] text-[var(--fg)]"
                 : "text-[var(--fg-muted)] hover:text-[var(--fg)]"
             }`}
           >
@@ -199,7 +189,7 @@ function MenuOption({
         <span className="mt-0.5 block text-[12.5px] text-[var(--fg-muted)]">{desc}</span>
       </span>
       <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center">
-        {active && <Check className="h-4 w-4 text-[var(--accent)]" strokeWidth={2} />}
+        {active && <Check className="h-4 w-4 text-[var(--fg)]" strokeWidth={2} />}
       </span>
     </button>
   );

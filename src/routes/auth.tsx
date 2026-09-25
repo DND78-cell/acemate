@@ -43,7 +43,7 @@ export function AuthPage() {
         <div className="mx-auto flex w-full max-w-[400px] flex-col px-5 pb-12 pt-[8vh]">
           <div className="flex flex-col items-center text-center">
             <AceMateLogo size={40} />
-            <h1 className="mt-5 text-[26px] font-semibold leading-tight tracking-[-0.02em] text-[var(--fg)]">
+            <h1 className="font-serif mt-5 text-[32px] font-normal leading-tight text-[var(--fg)]">
               {mode === "signin" ? "Sign in" : "Create account"}
             </h1>
             <p className="mt-2 text-[14.5px] text-[var(--fg-muted)]">

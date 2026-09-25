@@ -510,7 +510,7 @@ export function CompanionPage() {
             inputRef={inputRef}
           />
           <p className="py-2 text-center text-[11.5px] text-[var(--fg-faint)]">
-            AceMate can make mistakes. Check important answers.
+            AceMate can make mistakes — double-check important answers.
           </p>
         </div>
       </div>

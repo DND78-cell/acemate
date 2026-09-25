@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { AppSidebar } from "@/components/AppSidebar";
 
 type Shell = {
@@ -42,8 +42,8 @@ export function AppShell({ children }: { children: ReactNode }) {
     }
   });
   const [drawerOpen, setDrawerOpen] = useState(false);
-  // The drawer's contents exist only while it's open, plus the moment it
-  // takes to slide away.
+  // The drawer's contents (with their metal shaders) exist only while it's
+  // open, plus the moment it takes to slide away.
   const [drawerMounted, setDrawerMounted] = useState(false);
   useEffect(() => {
     if (drawerOpen) {
@@ -52,27 +52,6 @@ export function AppShell({ children }: { children: ReactNode }) {
     }
     const t = setTimeout(() => setDrawerMounted(false), 250);
     return () => clearTimeout(t);
-  }, [drawerOpen]);
-
-  // The drawer is modal: Escape closes it, focus moves into it when it opens
-  // and goes back to whatever opened it when it closes.
-  const drawerRef = useRef<HTMLDivElement>(null);
-  const drawerOpener = useRef<HTMLElement | null>(null);
-  useEffect(() => {
-    if (!drawerOpen) return;
-    const opener = drawerOpener.current;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setDrawerOpen(false);
-    };
-    window.addEventListener("keydown", onKey);
-    const focusTimer = window.setTimeout(() => {
-      drawerRef.current?.querySelector<HTMLElement>("[data-drawer-focus]")?.focus();
-    }, 50);
-    return () => {
-      window.removeEventListener("keydown", onKey);
-      window.clearTimeout(focusTimer);
-      if (opener?.isConnected) opener.focus();
-    };
   }, [drawerOpen]);
 
   useEffect(() => {
@@ -100,17 +79,12 @@ export function AppShell({ children }: { children: ReactNode }) {
     setSidebarOpen,
     drawerOpen,
     setDrawerOpen,
-    openSidebar: () => {
-      if (isDesktop) return setSidebarOpen(true);
-      // Noted before the page behind goes inert, which takes focus away.
-      drawerOpener.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-      setDrawerOpen(true);
-    },
+    openSidebar: () => (isDesktop ? setSidebarOpen(true) : setDrawerOpen(true)),
   };
 
   return (
     <ShellContext.Provider value={shell}>
-      <div className="flex h-full w-full overflow-hidden bg-[var(--bg)]" inert={!isDesktop && drawerOpen}>
+      <div className="flex h-full w-full overflow-hidden bg-[var(--bg)]">
         {isDesktop && sidebarOpen && (
           <div className="h-full w-[260px] shrink-0 border-r border-[var(--line)]">
             <AppSidebar onNavigate={() => undefined} onClose={() => setSidebarOpen(false)} />
@@ -130,14 +104,12 @@ export function AppShell({ children }: { children: ReactNode }) {
             style={{ background: "var(--overlay-bg)" }}
           />
           <div
-            ref={drawerRef}
             role="dialog"
-            aria-modal="true"
             aria-label="Navigation"
             aria-hidden={!drawerOpen}
             inert={!drawerOpen}
-            className={`fixed inset-y-0 left-0 z-50 w-[280px] max-w-[85%] border-r border-[var(--line)] transition-transform duration-200 ease-out ${
-              drawerOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full"
+            className={`fixed inset-y-0 left-0 z-50 w-[280px] max-w-[85%] border-r border-[var(--line)] shadow-2xl transition-transform duration-200 ease-out ${
+              drawerOpen ? "translate-x-0" : "-translate-x-full"
             }`}
           >
             {drawerMounted && (
