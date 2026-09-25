@@ -349,15 +349,15 @@ export function NotesPage() {
     <div className="flex h-full flex-col">
       <TopBar />
       <div className="scrollbar-thin min-h-0 flex-1 overflow-y-auto">
-    <div className="notebook notebook-draw flex min-h-full flex-col">
-      <div className="flex justify-end">
+    <div className="notebook notebook-lined notebook-draw flex min-h-full flex-col">
+      <div className="absolute right-4 top-3 md:right-8">
         <DateStamp />
       </div>
       <div className="flex w-full max-w-[620px] flex-col">
-      <h1 className="font-display pt-5 pb-2 text-[34px] font-bold leading-tight text-[var(--fg)] sm:text-[40px]">
+      <h1 className="font-display pt-[56px] text-[34px] font-bold leading-[56px] text-[var(--fg)] sm:text-[42px]">
         Chapter notes
       </h1>
-      <p className="pb-8 text-[14.5px] text-[var(--fg-muted)]">
+      <p className="pb-7 text-[14.5px] leading-[28px] text-[var(--fg-muted)]">
         Snap the pages of a chapter and I'll turn them into a summary,
         flashcards and a quiz.
       </p>
@@ -373,7 +373,7 @@ export function NotesPage() {
             onChange={(e) => setSubject(e.target.value)}
             disabled={isBusy}
             placeholder="Biology, chapter 4: Photosynthesis"
-            className="mb-8 w-full border-b border-[var(--line-strong)] bg-transparent px-0.5 pb-2 pt-1.5 text-[17px] text-[var(--fg)] transition-colors placeholder:text-[var(--fg-faint)] focus:border-[var(--margin)] focus:outline-none focus-visible:outline-none disabled:opacity-60"
+            className="hand-input mb-8 w-full border-b border-[var(--line-strong)] bg-transparent px-0.5 pb-1 pt-1 transition-colors focus:border-[var(--margin)] focus:outline-none focus-visible:outline-none disabled:opacity-60"
           />
 
           <div className="label-mono mb-2.5">
@@ -781,19 +781,13 @@ function FlashcardsPanel({
       <button
         type="button"
         onClick={() => setFlipped((f) => !f)}
-        className="glass flex min-h-[220px] items-center justify-center rounded-2xl px-5 py-6 text-center transition"
+        className="flashcard flex min-h-[224px] flex-col px-5 pb-3 pt-[14px] text-left transition"
       >
-        <div>
-          <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-[color:var(--ice-dim)]">
-            {flipped ? "Answer" : "Question"}
-          </div>
-          <div className="text-[17px] leading-relaxed text-[color:var(--ice)]">
-            {flipped ? card.answer : card.question}
-          </div>
-          <div className="mt-4 text-[11px] text-[color:var(--ice-dim)]">
-            Tap card to flip
-          </div>
-        </div>
+        <span className="label-mono h-[32px] leading-[20px]">{flipped ? "Answer" : "Question"}</span>
+        <span className="flex-1 pt-[2px] text-[17px] leading-[28px] text-[var(--fg)]">
+          {flipped ? card.answer : card.question}
+        </span>
+        <span className="mt-3 self-end text-[11px] text-[var(--fg-faint)]">Tap to flip</span>
       </button>
       <div className="mt-4 flex items-center justify-between">
         <button

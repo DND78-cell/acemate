@@ -86,11 +86,15 @@ export function AppShell({ children }: { children: ReactNode }) {
     <ShellContext.Provider value={shell}>
       <div className="flex h-full w-full overflow-hidden bg-[var(--bg)]">
         {isDesktop && sidebarOpen && (
-          <div className="h-full w-[260px] shrink-0 border-r border-[var(--line)]">
+          <div className="h-full w-[260px] shrink-0">
             <AppSidebar onNavigate={() => undefined} onClose={() => setSidebarOpen(false)} />
           </div>
         )}
-        <main className="relative flex h-full min-w-0 flex-1 flex-col">{children}</main>
+        <main className="relative flex h-full min-w-0 flex-1 flex-col">
+          {/* The spiral binding between the cover and the page. */}
+          {isDesktop && <div className="spiral" aria-hidden="true" />}
+          {children}
+        </main>
       </div>
 
       {!isDesktop && (

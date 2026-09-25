@@ -8,6 +8,7 @@
   --font-sans: "Atkinson Hyperlegible Next", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-display: "Bricolage Grotesque", "Atkinson Hyperlegible Next", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Atkinson Hyperlegible Mono", ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+  --font-hand: "Kalam", "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
   --color-background: var(--bg);
   --color-foreground: var(--fg);
   --color-muted-foreground: var(--fg-muted);
@@ -46,7 +47,29 @@ body {
   /* The exercise-book margin: a red rule, question numbers. */
   --margin: #e57a84;
   --margin-rgb: 229, 122, 132;
-  --margin-line: rgba(var(--margin-rgb), 0.42);
+  --margin-line: rgba(var(--margin-rgb), 0.45);
+  /* The page: ruled lines, and what the student writes (Graphite writes in pencil). */
+  --rule: rgba(255, 255, 255, 0.055);
+  --hand: #d4d7dd;
+  /* AceMate's printed answer sheets, taped onto the page. */
+  --card: #222428;
+  --card-line: #303237;
+  --card-rule: rgba(255, 255, 255, 0.05);
+  --tape: rgba(214, 205, 176, 0.3);
+  /* The cover (sidebar), its name label, and the spiral binding. */
+  --cover: #0e0f11;
+  --cover-fg: #e8e9ec;
+  --cover-muted: #9da1aa;
+  --cover-faint: #6d717a;
+  --cover-surface: #17181b;
+  --cover-hover: #1c1d21;
+  --cover-line: #24262b;
+  --cover-line-strong: #34373e;
+  --label: #e7e5dc;
+  --label-ink: #1b1d22;
+  --label-rule: #bcb9ae;
+  --label-hand: #3d4048;
+  --coil: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='26' viewBox='0 0 40 26'%3E%3Cdefs%3E%3ClinearGradient id='w' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23c3c7cd'/%3E%3Cstop offset='0.55' stop-color='%235b5f67'/%3E%3Cstop offset='1' stop-color='%23979ba2'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='27' cy='14' r='4.2' fill='%23050506' stroke='%232a2c31' stroke-width='1'/%3E%3Cpath d='M3 18 C 8 6, 19 5, 26.5 12.5' fill='none' stroke='url(%23w)' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E");
   --code-bg: rgba(255, 255, 255, 0.07);
   --pre-bg: #121316;
   --overlay-bg: rgba(0, 0, 0, 0.55);
@@ -99,6 +122,25 @@ body[data-theme="ocean"] {
   --primary-fg: #0f1620;
   --margin: #f08a80;
   --margin-rgb: 240, 138, 128;
+  --rule: rgba(230, 238, 247, 0.055);
+  --hand: #b8d0ff;
+  --card: #16202d;
+  --card-line: #223044;
+  --card-rule: rgba(230, 238, 247, 0.05);
+  --tape: rgba(210, 225, 245, 0.16);
+  --cover: #070d16;
+  --cover-fg: #e6eef7;
+  --cover-muted: #94a8be;
+  --cover-faint: #65788d;
+  --cover-surface: #0f1824;
+  --cover-hover: #131d2b;
+  --cover-line: #1b2636;
+  --cover-line-strong: #26344a;
+  --label: #e6ecf4;
+  --label-ink: #0f1620;
+  --label-rule: #b3bfce;
+  --label-hand: #1f4fb0;
+  --coil: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='26' viewBox='0 0 40 26'%3E%3Cdefs%3E%3ClinearGradient id='w' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23c2cddb'/%3E%3Cstop offset='0.55' stop-color='%2356657a'/%3E%3Cstop offset='1' stop-color='%2393a1b4'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='27' cy='14' r='4.2' fill='%2303070d' stroke='%231f2c3d' stroke-width='1'/%3E%3Cpath d='M3 18 C 8 6, 19 5, 26.5 12.5' fill='none' stroke='url(%23w)' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E");
   --pre-bg: #0a1018;
   --logo-fill: #e6eef7;
   --logo-stroke: #0f1620;
@@ -124,7 +166,26 @@ body[data-theme="chalk"] {
   --primary-fg: #1a2420;
   --margin: #e8d489;
   --margin-rgb: 232, 212, 137;
-  --margin-line: rgba(var(--margin-rgb), 0.38);
+  --margin-line: rgba(var(--margin-rgb), 0.4);
+  --rule: rgba(237, 240, 231, 0.06);
+  --hand: #f4f2e8;
+  --card: #24302b;
+  --card-line: #34413b;
+  --card-rule: rgba(237, 240, 231, 0.05);
+  --tape: rgba(236, 228, 200, 0.18);
+  --cover: #3a2b1e;
+  --cover-fg: #f2eadc;
+  --cover-muted: #c9b79f;
+  --cover-faint: #9c8a73;
+  --cover-surface: rgba(255, 255, 255, 0.06);
+  --cover-hover: rgba(255, 255, 255, 0.09);
+  --cover-line: rgba(255, 255, 255, 0.12);
+  --cover-line-strong: rgba(255, 255, 255, 0.2);
+  --label: #ece6d6;
+  --label-ink: #2a2119;
+  --label-rule: #bdb39e;
+  --label-hand: #2d3a8c;
+  --coil: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='26' viewBox='0 0 40 26'%3E%3Cdefs%3E%3ClinearGradient id='w' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23c8ccc4'/%3E%3Cstop offset='0.55' stop-color='%235f655e'/%3E%3Cstop offset='1' stop-color='%239ca198'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='27' cy='14' r='4.2' fill='%230b100e' stroke='%232e3a35' stroke-width='1'/%3E%3Cpath d='M3 18 C 8 6, 19 5, 26.5 12.5' fill='none' stroke='url(%23w)' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E");
   --pre-bg: #141c19;
   --logo-fill: #edf0e7;
   --logo-stroke: #1a2420;
@@ -136,7 +197,7 @@ body[data-theme="chalk"] {
 
 /* Notebook paper: cool white, blue-black ink, a red margin. */
 body[data-theme="light"] {
-  --bg: #fbfcfd;
+  --bg: #f6f8fb;
   --bg-sidebar: #f2f4f7;
   --surface: #ffffff;
   --surface-hover: #eceff3;
@@ -150,9 +211,29 @@ body[data-theme="light"] {
   --primary-bg: #19202c;
   --primary-fg: #ffffff;
   --danger: #d23f3f;
-  --margin: #d9505e;
-  --margin-rgb: 217, 80, 94;
-  --margin-line: rgba(var(--margin-rgb), 0.5);
+  --margin: #dc4f5d;
+  --margin-rgb: 220, 79, 93;
+  --margin-line: rgba(var(--margin-rgb), 0.55);
+  /* Blue ballpoint on blue-ruled paper, under a blue notebook cover. */
+  --rule: #d8e1f0;
+  --hand: #2446c9;
+  --card: #ffffff;
+  --card-line: #e0e5ed;
+  --card-rule: #dde5f2;
+  --tape: rgba(242, 215, 140, 0.62);
+  --cover: #1d3783;
+  --cover-fg: #f3f6ff;
+  --cover-muted: #b9c6ef;
+  --cover-faint: #8b9bd1;
+  --cover-surface: rgba(255, 255, 255, 0.08);
+  --cover-hover: rgba(255, 255, 255, 0.11);
+  --cover-line: rgba(255, 255, 255, 0.14);
+  --cover-line-strong: rgba(255, 255, 255, 0.26);
+  --label: #fbfaf4;
+  --label-ink: #19202c;
+  --label-rule: #c9ccd4;
+  --label-hand: #2446c9;
+  --coil: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='26' viewBox='0 0 40 26'%3E%3Cdefs%3E%3ClinearGradient id='w' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23f6f7f9'/%3E%3Cstop offset='0.55' stop-color='%238a9099'/%3E%3Cstop offset='1' stop-color='%23c9cdd4'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='27' cy='14' r='4.2' fill='%2327365f' stroke='%23c3cad6' stroke-width='1'/%3E%3Cpath d='M3 18 C 8 6, 19 5, 26.5 12.5' fill='none' stroke='url(%23w)' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E");
   --code-bg: rgba(25, 32, 44, 0.06);
   --pre-bg: #f4f6f9;
   --overlay-bg: rgba(20, 24, 32, 0.28);
@@ -198,36 +279,53 @@ body,
 }
 
 /*
- * A notebook page. The text column sits right of a thin margin rule; the
- * margin holds question numbers. Stack two of these (thread, composer) with
- * the same width and the rule runs straight down the page.
+ * A notebook page. The page runs the full width of the screen: a red margin
+ * rule near its left edge, the writing column right of it, and (with
+ * .notebook-lined) faint ruled lines every 28px that scroll with the page.
+ * The student's writing sits on those lines; AceMate's answers are printed
+ * sheets taped on top. Stack two of these (thread, composer) and the margin
+ * rule runs straight down the page.
  */
 .notebook {
-  --margin-w: 42px;
-  --rule-gap: 14px;
-  --gutter: 14px;
+  --line-step: 28px;
+  --margin-x: 44px;
+  --rule-gap: 12px;
+  --col: 720px;
   position: relative;
-  width: 100%;
-  max-width: 800px;
-  margin-inline: auto;
-  padding-left: calc(var(--gutter) + var(--margin-w));
-  padding-right: var(--gutter);
+  padding-left: calc(var(--margin-x) + var(--rule-gap));
+  padding-right: 14px;
+}
+.notebook > * {
+  max-width: var(--col);
 }
 .notebook::before {
   content: "";
   position: absolute;
   inset-block: 0;
-  left: calc(var(--gutter) + var(--margin-w) - var(--rule-gap));
+  left: var(--margin-x);
   width: 1px;
   background: var(--margin-line);
+  box-shadow: 3px 0 0 var(--margin-line);
   pointer-events: none;
 }
-@media (min-width: 640px) {
+@media (min-width: 768px) {
   .notebook {
-    --margin-w: 64px;
-    --rule-gap: 20px;
-    --gutter: 24px;
+    --margin-x: 100px;
+    --rule-gap: 22px;
+    padding-right: 32px;
   }
+}
+.notebook-lined {
+  /* Lines sit 4px above each 28px step, so handwriting rests on them. */
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent calc(var(--line-step) - 5px),
+    var(--rule) calc(var(--line-step) - 5px),
+    var(--rule) calc(var(--line-step) - 4px),
+    transparent calc(var(--line-step) - 4px),
+    transparent var(--line-step)
+  );
 }
 /* The rule is drawn down the page once, when a new page opens. */
 .notebook-draw::before {
@@ -239,66 +337,240 @@ body,
   to { transform: scaleY(1); }
 }
 
-/* Text in the margin, level with the first line of the element it belongs to. */
+/* The spiral binding between the cover (sidebar) and the page. */
+.spiral {
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  left: -10px;
+  width: 40px;
+  z-index: 30;
+  background-image: var(--coil);
+  background-repeat: repeat-y;
+  background-size: 40px 26px;
+  pointer-events: none;
+}
+
+/* Red-pen notes in the margin, level with the first line they belong to. */
 .margin-note {
   position: absolute;
   top: 0;
-  right: calc(100% + var(--rule-gap, 14px) + 7px);
-  font-family: var(--font-mono);
-  font-size: 11.5px;
-  font-weight: 500;
-  line-height: 1.75rem;
+  right: calc(100% + var(--rule-gap, 12px) + 8px);
+  font-family: var(--font-hand);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 28px;
   white-space: nowrap;
-  font-variant-numeric: tabular-nums;
   color: var(--margin);
   user-select: none;
 }
-.margin-note.is-answer {
-  color: var(--fg-faint);
-  font-weight: 400;
-}
 
-/* A question, written like an exercise heading. Long pastes stay in the text face. */
+/* The student's question, handwritten on the ruled lines. */
 .question {
-  font-family: var(--font-display);
-  font-stretch: 94%;
-  font-weight: 600;
-  font-size: 1.14em;
-  line-height: 1.75rem;
-  letter-spacing: -0.012em;
+  font-family: var(--font-hand);
+  font-size: 1.42em;
+  line-height: 28px;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-  color: var(--fg);
+  color: var(--hand);
 }
+/* A long paste reads better in print, still in the student's ink. */
 .question.is-long {
   font-family: var(--font-sans);
-  font-stretch: normal;
-  font-weight: 500;
   font-size: 1em;
-  line-height: 1.65;
-  letter-spacing: 0;
+  font-weight: 500;
+}
+.question-photo {
+  height: 168px;
+  max-width: 100%;
+  width: auto;
+  object-fit: cover;
+  border-radius: 3px;
+  border: 1px solid var(--card-line);
+  box-shadow: 0 6px 14px -10px rgba(0, 0, 0, 0.6);
+  transform: rotate(-1deg);
 }
 
-/* The printed date box in the corner of a notebook page. */
+/* AceMate's answer: a printed sheet taped onto the page. */
+.answer-sheet {
+  position: relative;
+  width: 100%;
+  background: var(--card);
+  border: 1px solid var(--card-line);
+  border-radius: 3px;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04), 0 10px 22px -16px rgba(0, 0, 0, 0.6);
+  padding: 12px 18px 4px;
+  color: var(--fg);
+}
+.answer-sheet::before {
+  content: "";
+  position: absolute;
+  top: -10px;
+  left: 26px;
+  width: 74px;
+  height: 21px;
+  background: var(--tape);
+  transform: rotate(-3deg);
+  /* Torn ends, like a strip pulled off the roll. */
+  clip-path: polygon(0 14%, 4% 0, 96% 6%, 100% 22%, 97% 40%, 100% 58%, 97% 76%, 100% 92%, 95% 100%, 5% 94%, 1% 80%, 3% 62%, 0 46%, 3% 30%);
+  pointer-events: none;
+}
+
+/* The message box is an index card: a red line across the top, ruled lines to write on. */
+.index-card {
+  position: relative;
+  background: var(--card);
+  border: 1px solid var(--card-line);
+  border-radius: 4px;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04), 0 12px 26px -18px rgba(0, 0, 0, 0.65);
+}
+.index-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 10px;
+  height: 1px;
+  background: var(--margin-line);
+  pointer-events: none;
+}
+.index-card:focus-within {
+  border-color: var(--line-strong);
+}
+.card-lines {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 26px,
+    var(--card-rule) 26px,
+    var(--card-rule) 27px,
+    transparent 27px,
+    transparent 28px
+  );
+  background-attachment: local;
+}
+.hand-input {
+  font-family: var(--font-hand);
+  font-size: 20px;
+  line-height: 28px;
+  color: var(--hand);
+}
+.hand-input::placeholder {
+  color: var(--fg-faint);
+  opacity: 1;
+}
+
+/* Handwriting for anything the student fills in: names, dates, the subject. */
+.hand {
+  font-family: var(--font-hand);
+  color: var(--hand);
+}
+
+/* A red-pen underline under a word, drawn once when the page opens. */
+.pen-underline {
+  position: relative;
+  display: inline-block;
+}
+.pen-underline svg {
+  position: absolute;
+  left: -2%;
+  bottom: -0.16em;
+  width: 104%;
+  height: 0.32em;
+  overflow: visible;
+  pointer-events: none;
+}
+.pen-underline path {
+  fill: none;
+  stroke: var(--margin);
+  stroke-width: 3.2;
+  stroke-linecap: round;
+  stroke-dasharray: 320;
+  stroke-dashoffset: 320;
+  animation: acemate-pen 0.75s 0.35s cubic-bezier(0.3, 0.6, 0.2, 1) forwards;
+}
+@keyframes acemate-pen {
+  to { stroke-dashoffset: 0; }
+}
+
+/* The sidebar is the notebook's cover. */
+.cover {
+  --fg: var(--cover-fg);
+  --fg-muted: var(--cover-muted);
+  --fg-faint: var(--cover-faint);
+  --surface: var(--cover-surface);
+  --surface-hover: var(--cover-hover);
+  --line: var(--cover-line);
+  --line-strong: var(--cover-line-strong);
+  background: var(--cover);
+  color: var(--fg);
+}
+@media (min-width: 768px) {
+  .cover {
+    padding-right: 8px;
+  }
+}
+/* The name label stuck on the cover. */
+.cover-label {
+  --logo-fill: var(--label-ink);
+  --logo-stroke: var(--label);
+  background: var(--label);
+  color: var(--label-ink);
+  border-radius: 4px;
+  padding: 9px 12px 7px;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.05) inset;
+}
+.cover-label-line {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  border-bottom: 1px solid var(--label-rule);
+  font-size: 10px;
+}
+.cover-label-line .label-mono {
+  color: color-mix(in srgb, var(--label-ink) 55%, transparent);
+  font-size: 9.5px;
+}
+.cover-label-line .hand {
+  color: var(--label-hand);
+  font-size: 17px;
+  line-height: 24px;
+}
+
+/* The printed date box in the corner of a notebook page, filled in by hand. */
 .date-stamp {
   display: inline-flex;
   align-items: baseline;
   gap: 8px;
 }
 .date-stamp-value {
-  min-width: 84px;
-  padding: 0 6px 3px;
+  min-width: 96px;
+  padding: 0 8px;
   border-bottom: 1px solid var(--line-strong);
-  font-family: var(--font-mono);
-  font-size: 13px;
+  font-family: var(--font-hand);
+  font-size: 19px;
+  line-height: 26px;
   text-align: center;
-  font-variant-numeric: tabular-nums;
-  color: var(--fg-muted);
+  color: var(--hand);
 }
 
 /* Ruled example list: one line per suggestion, like lined paper. */
 .ruled-list > li + li {
   border-top: 1px solid var(--line);
+}
+
+/* Flashcards are index cards. */
+.flashcard {
+  position: relative;
+  background-color: var(--card);
+  border: 1px solid var(--card-line);
+  border-radius: 4px;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04), 0 14px 28px -20px rgba(0, 0, 0, 0.7);
+  background-image:
+    linear-gradient(to bottom, transparent 44px, var(--margin-line) 44px, var(--margin-line) 46px, transparent 46px),
+    repeating-linear-gradient(to bottom, transparent 0, transparent 27px, var(--card-rule) 27px, var(--card-rule) 28px);
+  background-position: 0 0, 0 46px;
+  background-repeat: no-repeat, repeat;
 }
 
 /* Flat card: the surfaces that used to be frosted glass. */

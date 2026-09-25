@@ -22,6 +22,8 @@ const PAGES = [
   { label: "Code", to: "/code", icon: Code2 },
 ] as const;
 
+const firstName = (name?: string | null) => (name ?? "").trim().split(/\s+/)[0] ?? "";
+
 const rowClass = (active: boolean) =>
   `flex h-9 w-full items-center gap-2.5 rounded-lg px-2.5 text-left text-[14px] transition-colors ${
     active
@@ -72,27 +74,30 @@ export function AppSidebar({
   const settingsActive = pathname.startsWith("/settings");
 
   return (
-    <nav aria-label="AceMate" className="flex h-full flex-col bg-[var(--bg-sidebar)]">
-      <div className="flex h-12 shrink-0 items-center justify-between pl-4 pr-2">
-        <button
-          type="button"
-          onClick={newChat}
-          className="font-display flex items-center gap-2 rounded-md text-[18px] font-bold text-[var(--fg)]"
-        >
-          <AceMateLogo size={17} />
-          AceMate
-        </button>
+    <nav aria-label="AceMate" className="cover flex h-full flex-col">
+      {/* The name label on the notebook's cover. */}
+      <div className="flex shrink-0 items-start gap-1 pl-3 pr-2 pt-3">
+        <div className="cover-label min-w-0 flex-1">
+          <div className="font-display flex items-center gap-2 text-[19px] font-bold leading-6">
+            <AceMateLogo size={16} />
+            AceMate
+          </div>
+          <div className="cover-label-line mt-1">
+            <span className="label-mono">Name</span>
+            <span className="hand min-w-0 truncate">{loading ? "" : firstName(user?.name) || "Guest"}</span>
+          </div>
+        </div>
         <button
           type="button"
           onClick={onClose}
           aria-label="Close sidebar"
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--fg-muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--fg)]"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[var(--fg-muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--fg)]"
         >
           <PanelLeftClose className="h-[18px] w-[18px]" strokeWidth={1.75} />
         </button>
       </div>
 
-      <div className="px-3 pt-2">
+      <div className="px-3 pt-4">
         <button
           type="button"
           onClick={newChat}

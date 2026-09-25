@@ -47,7 +47,7 @@ export function TopBar({
   const sidebarHidden = !shell.isDesktop || !shell.sidebarOpen;
 
   return (
-    <header className="z-20 flex h-12 shrink-0 items-center gap-1 bg-[var(--bg)] px-2">
+    <header className="z-20 flex h-12 shrink-0 items-center gap-1 bg-[var(--bg)] px-2 md:pl-8">
       {sidebarHidden && (
         <>
           <IconButton label="Open sidebar" onClick={shell.openSidebar}>

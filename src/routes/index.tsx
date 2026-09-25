@@ -496,9 +496,16 @@ export function ChatPage() {
 
   const heading = (
     <div>
-      <p className="text-[15px] text-[var(--fg-muted)]">{greeting(user?.name ?? "")}</p>
-      <h1 className="font-display mt-1.5 text-[34px] font-bold leading-[1.04] text-[var(--fg)] sm:text-[46px]">
-        What are we studying today?
+      <p className="text-[15px] leading-[28px] text-[var(--fg-muted)]">{greeting(user?.name ?? "")}</p>
+      <h1 className="font-display text-[34px] font-bold leading-[56px] text-[var(--fg)] sm:text-[48px]">
+        What are we{" "}
+        <span className="pen-underline">
+          studying
+          <svg viewBox="0 0 200 12" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M3 8 C 40 3, 82 10, 122 6 S 178 3, 197 7" />
+          </svg>
+        </span>{" "}
+        today?
       </h1>
     </div>
   );
@@ -506,8 +513,8 @@ export function ChatPage() {
   // The composer is where the next question gets written, so its number sits in the margin.
   const numberedComposer = (placement: "up" | "down", n: number) => (
     <div className="relative">
-      <span className="margin-note" style={{ top: "0.8rem" }} aria-hidden="true">
-        Q{n}
+      <span className="margin-note" style={{ top: 18 }} aria-hidden="true">
+        Q{n}.
       </span>
       {composer(placement)}
     </div>
@@ -518,19 +525,19 @@ export function ChatPage() {
       <div className="flex h-full flex-col">
         <TopBar />
         <div className="scrollbar-thin min-h-0 flex-1 overflow-y-auto">
-          <div className="notebook notebook-draw flex min-h-full flex-col">
-            <div className="flex justify-end">
+          <div className="notebook notebook-lined notebook-draw flex min-h-full flex-col">
+            <div className="absolute right-4 top-3 md:right-8">
               <DateStamp />
             </div>
             {shell.isDesktop ? (
-              <div className="pb-[14vh] pt-[9vh]">
+              <div className="pb-[112px] pt-[112px]">
                 {heading}
                 <div className="mt-7 flex flex-col gap-2 empty:hidden">{notices}</div>
-                <div className="mt-7">{numberedComposer("down", 1)}</div>
+                <div className="mt-[28px]">{numberedComposer("down", 1)}</div>
                 {starters}
               </div>
             ) : (
-              <div className="flex flex-1 flex-col justify-center py-8">
+              <div className="flex flex-1 flex-col justify-center pb-[28px] pt-[84px]">
                 {heading}
                 {starters}
               </div>
@@ -556,7 +563,7 @@ export function ChatPage() {
       <TopBar title={titleOf(messages)} />
       <div ref={scrollerRef} className="scrollbar-thin min-h-0 flex-1 overflow-y-auto">
         <div
-          className="notebook flex min-h-full flex-col gap-4 pb-8 pt-4"
+          className="notebook notebook-lined flex min-h-full flex-col pb-8 pt-[28px]"
           style={{ fontSize: TEXT_SIZE_PX[settings.textSize] }}
         >
           {messages.map((m) => (

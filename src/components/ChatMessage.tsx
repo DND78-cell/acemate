@@ -4,14 +4,15 @@ import type { UIMessage } from "@/lib/chat";
 import { Markdown, useCopy } from "@/components/Markdown";
 import { reasoningText, ThoughtDisclosure } from "@/components/ai/AiResponseActivity";
 import { AceMateOrb } from "@/components/ai/AceMateOrb";
+import { useGridSnap } from "@/lib/use-grid-snap";
 
-/** Questions longer than this read as a pasted passage, not a heading. */
+/** Questions longer than this read as a pasted passage and switch to print. */
 const LONG_QUESTION = 240;
 
 /**
- * One turn of a conversation, laid out like an exercise book: the person's
- * question is written as a numbered heading (the number sits in the page
- * margin), and AceMate's answer follows it, marked "Ans".
+ * One turn of a conversation, laid out in an exercise book. The person's
+ * question is handwritten on the ruled lines with its number in the margin;
+ * AceMate's answer is a printed sheet taped onto the page, marked "Ans.".
  */
 export function ChatMessage({
   message,
@@ -29,27 +30,21 @@ export function ChatMessage({
   renderBody?: (text: string, writing: boolean) => ReactNode;
 }) {
   const [copied, copy] = useCopy();
+  const isUser = message.role === "user";
+  // Skip a line after a question, and at least one after an answer sheet.
+  const snapRef = useGridSnap(isUser ? 14 : 28);
   const text = message.parts.map((p) => (p.type === "text" ? p.text : "")).join("");
 
-  if (message.role === "user") {
+  if (isUser) {
     const images = message.parts.flatMap((p) =>
       p.type === "file" && p.mediaType.startsWith("image/") ? [p.url] : [],
     );
     return (
-      <div className="relative flex flex-col items-start gap-3 pt-2 not-first:mt-7">
-        {number != null && (
-          <span className="margin-note" style={{ top: "0.5rem" }}>
-            Q{number}
-          </span>
-        )}
+      <div ref={snapRef} className="relative flex flex-col items-start gap-[14px]">
+        {number != null && <span className="margin-note">Q{number}.</span>}
         {text && <div className={`question ${text.length > LONG_QUESTION ? "is-long" : ""}`}>{text}</div>}
         {images.map((url, i) => (
-          <img
-            key={i}
-            src={url}
-            alt="Attached image"
-            className="max-h-[240px] max-w-full rounded-xl border border-[var(--line)] object-cover sm:max-w-[70%]"
-          />
+          <img key={i} src={url} alt="Attached image" className="question-photo" />
         ))}
       </div>
     );
@@ -58,20 +53,18 @@ export function ChatMessage({
   if (!text) return null;
 
   return (
-    <div className="group flex flex-col items-start">
+    <div ref={snapRef} className="answer-sheet group">
+      <span className="margin-note" style={{ top: 9 }} aria-hidden="true">
+        Ans.
+      </span>
       {thoughtSeconds != null && (
         <ThoughtDisclosure seconds={thoughtSeconds} reasoning={reasoningText(message.parts)} />
       )}
-      <div className="relative w-full text-[var(--fg)]">
-        <span className="margin-note is-answer" style={{ lineHeight: "1.6rem" }} aria-hidden="true">
-          Ans
-        </span>
-        {renderBody ? renderBody(text, writing) : <Markdown text={text} />}
-      </div>
+      <div className="w-full">{renderBody ? renderBody(text, writing) : <Markdown text={text} />}</div>
       {writing ? (
-        <AceMateOrb activity="writing" size={20} showLabel={false} className="pt-2" />
+        <AceMateOrb activity="writing" size={20} showLabel={false} className="py-2" />
       ) : (
-        <div className="mt-1.5 flex h-8 items-center">
+        <div className="mt-1 flex h-8 items-center">
           <button
             type="button"
             onClick={() => copy(text)}

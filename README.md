@@ -4,10 +4,14 @@ An AI chat and study assistant powered by Claude: chat with image upload, a Code
 screen with live preview, Chapter Notes (photos → summary, flashcards, quiz) and a
 study Companion with an activity heatmap.
 
-It's laid out like a student's exercise book: a margin rule down each conversation,
-question numbers (Q1, Q2…) in the margin, and the date in the corner of the page.
-Type is Bricolage Grotesque for headings and Atkinson Hyperlegible for reading.
-Themes: Graphite (default), Ocean, Chalkboard, Paper.
+It looks like a spiral-bound exercise book. The sidebar is the cover, with a
+name label; the page has ruled lines and a red margin. Your questions are
+handwritten on the lines (Kalam) with Q1., Q2… in the margin, and AceMate's
+answers are printed sheets taped onto the page, marked "Ans.". Flashcards are
+index cards, and so is the message box. Each theme writes with its own tool:
+Graphite (default) in pencil, Paper in blue ballpoint, Chalkboard in chalk,
+Ocean in pale ink. Headings use Bricolage Grotesque; answers use Atkinson
+Hyperlegible, which keeps 0/O and 1/l/I distinct.
 
 The same code runs two ways:
 

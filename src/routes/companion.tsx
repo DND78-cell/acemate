@@ -444,7 +444,7 @@ export function CompanionPage() {
       {/* Chat */}
       <div ref={scrollerRef} className="scrollbar-thin min-h-0 flex-1 overflow-y-auto">
         <div
-          className="notebook flex min-h-full flex-col gap-4 pb-6 pt-1"
+          className="notebook notebook-lined flex min-h-full flex-col pb-6 pt-[28px]"
           style={{ fontSize: TEXT_SIZE_PX[settings.textSize] }}
         >
           {messages.length === 0 ? (
@@ -504,8 +504,8 @@ export function CompanionPage() {
       <div className="shrink-0">
         <div className="notebook">
           <div className="relative">
-            <span className="margin-note" style={{ top: "0.8rem" }} aria-hidden="true">
-              Q{numbers.size + 1}
+            <span className="margin-note" style={{ top: 18 }} aria-hidden="true">
+              Q{numbers.size + 1}.
             </span>
             <Composer
               value={input}

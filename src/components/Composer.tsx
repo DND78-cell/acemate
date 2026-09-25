@@ -10,7 +10,11 @@ import {
   type ModelId,
 } from "@/lib/settings";
 
-/** The message box: text on top, controls along the bottom edge. */
+/**
+ * The message box, drawn as an index card: a red line across the top and
+ * ruled lines to write on. What you type shows in handwriting, the same as
+ * your questions on the page.
+ */
 export function Composer({
   value,
   onChange,
@@ -46,7 +50,7 @@ export function Composer({
     const el = ref.current;
     if (!el) return;
     el.style.height = "auto";
-    el.style.height = `${Math.min(el.scrollHeight, 220)}px`;
+    el.style.height = `${Math.min(el.scrollHeight, 224)}px`;
   }, [value, ref]);
 
   useEffect(() => {
@@ -59,8 +63,7 @@ export function Composer({
         e.preventDefault();
         if (!busy) onSubmit();
       }}
-      className="rounded-[22px] border border-[var(--line)] bg-[var(--surface)] px-3 pb-2.5 pt-3 transition-colors focus-within:border-[var(--line-strong)]"
-      style={{ boxShadow: "var(--shadow-composer)" }}
+      className="index-card px-3 pb-2.5 pt-[18px] transition-colors"
     >
       {top}
       <textarea
@@ -77,7 +80,7 @@ export function Composer({
         rows={1}
         placeholder={placeholder}
         aria-label={placeholder}
-        className="scrollbar-thin block max-h-[220px] min-h-[28px] w-full resize-none bg-transparent px-1.5 text-[15.5px] leading-7 text-[var(--fg)] outline-none placeholder:text-[var(--fg-faint)] focus-visible:outline-none"
+        className="hand-input card-lines scrollbar-thin block max-h-[224px] min-h-[28px] w-full resize-none bg-transparent px-1.5 outline-none focus-visible:outline-none"
       />
       <div className="mt-2 flex items-center gap-1.5">
         {leading}
