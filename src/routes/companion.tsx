@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { ChevronDown, ChevronLeft, ChevronRight, ImagePlus, Type, X } from "lucide-react";
 import { TopBar } from "@/components/TopBar";
 import { Composer } from "@/components/Composer";
-import { ChatMessage, questionNumbers } from "@/components/ChatMessage";
-import { ANSWER_DISCLAIMER } from "@/components/Notebook";
+import { ChatMessage } from "@/components/ChatMessage";
+import { EmptyState, Notice } from "@/components/Notice";
 import { messageText, reasoningText, ThinkingActivity } from "@/components/ai/AiResponseActivity";
 import { useAuth } from "@/hooks/use-auth";
 import {
@@ -301,8 +301,6 @@ export function CompanionPage() {
     });
   };
 
-  const numbers = questionNumbers(messages);
-
   return (
     <div className="flex h-full flex-col">
       <TopBar
@@ -311,7 +309,7 @@ export function CompanionPage() {
           <button
             type="button"
             onClick={clearSession}
-            className="h-8 rounded-lg px-3 text-[13px] text-[var(--fg-muted)] transition-colors hover:bg-[var(--surface-hover)] hover:text-[var(--fg)]"
+            className="h-8 rounded-full px-3 text-[13px] text-[var(--fg-muted)] transition-colors duration-200 hover:bg-[var(--surface-hover)] hover:text-[var(--fg)]"
           >
             Clear session
           </button>
@@ -319,15 +317,15 @@ export function CompanionPage() {
       />
 
       {/* Sources */}
-      <section className="notebook shrink-0 pb-3">
-        <div className="rounded-xl border border-[var(--line)] bg-[var(--surface)] p-3">
+      <section className="shrink-0 px-3 pb-3 sm:px-6">
+        <div className="glass mx-auto w-full max-w-[780px] rounded-[20px] p-3">
           <div className="flex flex-wrap items-center gap-2">
             <input
               id="companion-subject"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
               placeholder="Subject (optional)"
-              className="h-9 min-w-[140px] flex-1 rounded-lg border border-[var(--line)] bg-transparent px-3 text-[14px] text-[var(--fg)] outline-none placeholder:text-[var(--fg-faint)] focus:border-[var(--line-strong)]"
+              className="field h-9 min-w-[140px] flex-1 rounded-xl px-3 text-[14px]"
             />
             <input
               ref={fileRef}
@@ -341,18 +339,18 @@ export function CompanionPage() {
               <button
                 type="button"
                 onClick={() => fileRef.current?.click()}
-                className="chip inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-[13px]"
+                className="chip inline-flex h-9 items-center gap-1.5 rounded-xl px-3 text-[13px]"
               >
-                <ImagePlus className="h-4 w-4 text-[var(--fg-muted)]" strokeWidth={1.75} /> Add photo
+                <ImagePlus className="h-4 w-4 text-[var(--fg-muted)]" strokeWidth={1.6} /> Add photo
               </button>
             )}
             <button
               type="button"
               onClick={() => setTextOpen((v) => !v)}
               aria-expanded={textOpen}
-              className="chip inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-[13px]"
+              className="chip inline-flex h-9 items-center gap-1.5 rounded-xl px-3 text-[13px]"
             >
-              <Type className="h-4 w-4 text-[var(--fg-muted)]" strokeWidth={1.75} /> Add text
+              <Type className="h-4 w-4 text-[var(--fg-muted)]" strokeWidth={1.6} /> Add text
             </button>
           </div>
 
@@ -364,7 +362,7 @@ export function CompanionPage() {
                 onChange={(e) => setTextDraft(e.target.value)}
                 rows={3}
                 placeholder="Paste or type notes / context…"
-                className="w-full resize-none rounded-lg border border-[var(--line)] bg-transparent px-3 py-2 text-[14px] text-[var(--fg)] outline-none placeholder:text-[var(--fg-faint)] focus:border-[var(--line-strong)]"
+                className="field w-full resize-none rounded-xl px-3 py-2 text-[14px]"
               />
               <div className="mt-1.5 flex justify-end gap-2">
                 <button
@@ -373,7 +371,7 @@ export function CompanionPage() {
                     setTextOpen(false);
                     setTextDraft("");
                   }}
-                  className="h-8 rounded-lg px-3 text-[13px] text-[var(--fg-muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--fg)]"
+                  className="h-8 rounded-full px-3 text-[13px] text-[var(--fg-muted)] transition-colors hover:bg-[var(--surface-hover)] hover:text-[var(--fg)]"
                 >
                   Cancel
                 </button>
@@ -381,7 +379,7 @@ export function CompanionPage() {
                   type="button"
                   onClick={addText}
                   disabled={!textDraft.trim()}
-                  className="h-8 rounded-lg bg-[var(--primary-bg)] px-3 text-[13px] font-medium text-[var(--primary-fg)] disabled:opacity-35"
+                  className="btn-primary h-8 rounded-full px-3.5 text-[13px] font-medium"
                 >
                   Add
                 </button>
@@ -389,11 +387,7 @@ export function CompanionPage() {
             </div>
           )}
 
-          {sourceError && (
-            <div className="mt-2 rounded-lg border border-[var(--danger)]/35 bg-[var(--danger)]/10 px-3 py-2 text-[12.5px] text-[var(--fg)]">
-              {sourceError}
-            </div>
-          )}
+          {sourceError && <Notice className="mt-2">{sourceError}</Notice>}
 
           {sources.length > 0 && (
             <div className="scrollbar-thin mt-3 flex gap-2 overflow-x-auto pb-1 pt-1.5">
@@ -403,13 +397,13 @@ export function CompanionPage() {
                     <img
                       src={src.previewUrl}
                       alt={src.name}
-                      className="h-16 w-16 rounded-lg border border-[var(--line)] object-cover"
+                      className="h-16 w-16 rounded-xl border border-[var(--line)] object-cover"
                     />
                     <button
                       type="button"
                       onClick={() => removeSource(src.id)}
                       aria-label="Remove photo"
-                      className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[var(--primary-bg)] text-[var(--primary-fg)]"
+                      className="absolute -right-1.5 -top-1.5 grid h-5 w-5 place-items-center rounded-full bg-[var(--surface)] text-[var(--fg)] shadow-[0_0_0_1px_var(--line-strong)]"
                     >
                       <X className="h-3 w-3" strokeWidth={2.5} />
                     </button>
@@ -417,7 +411,7 @@ export function CompanionPage() {
                 ) : (
                   <div
                     key={src.id}
-                    className="flex h-16 w-[160px] shrink-0 items-start gap-1.5 rounded-lg border border-[var(--line)] px-2 py-1.5"
+                    className="flex h-16 w-[160px] shrink-0 items-start gap-1.5 rounded-xl border border-[var(--line)] bg-[var(--glass)] px-2.5 py-1.5"
                   >
                     <p className="line-clamp-3 flex-1 text-[12px] leading-snug text-[var(--fg-muted)]">{src.text}</p>
                     <button
@@ -433,7 +427,7 @@ export function CompanionPage() {
               )}
             </div>
           )}
-          <p className="mt-2 text-[12px] text-[var(--fg-faint)]">
+          <p className="mt-2 px-1 text-[12px] text-[var(--fg-faint)]">
             {imageLimits
               ? `${photoCount}/${maxPhotos} photos · sources stay for the whole session`
               : "Sources stay for the whole session"}
@@ -442,23 +436,24 @@ export function CompanionPage() {
       </section>
 
       {/* Chat */}
-      <div ref={scrollerRef} className="scrollbar-thin min-h-0 flex-1 overflow-y-auto">
+      <div ref={scrollerRef} className="scrollbar-thin thread-fade min-h-0 flex-1 overflow-y-auto">
         <div
-          className="notebook notebook-lined flex min-h-full flex-col pb-6 pt-[28px]"
+          className="thread mx-auto flex min-h-full w-full max-w-[780px] flex-col gap-8 px-4 pb-8 pt-3 sm:px-6"
           style={{ fontSize: TEXT_SIZE_PX[settings.textSize] }}
         >
           {messages.length === 0 ? (
-            <div>
-              <p className="px-1 pb-2 text-[13px] text-[var(--fg-muted)]">
-                Add your material above, then start the session.
-              </p>
-              <ul className="ruled-list border-y border-[var(--line)]">
-                {STARTERS.map((st) => (
-                  <li key={st}>
+            <div className="flex flex-1 flex-col items-center justify-center gap-7 py-6">
+              <EmptyState
+                title="Ready when you are."
+                subtitle="Add your notes or photos above, then ask anything about them."
+              />
+              <ul className="glass w-full overflow-hidden rounded-[18px]">
+                {STARTERS.map((st, i) => (
+                  <li key={st} className={i ? "border-t border-[var(--line)]" : ""}>
                     <button
                       type="button"
                       onClick={() => submit(st)}
-                      className="w-full px-1 py-3 text-left text-[14.5px] text-[var(--fg)] transition-colors hover:bg-[var(--surface-hover)]"
+                      className="w-full px-4 py-3 text-left text-[14px] text-[var(--fg)] transition-colors duration-200 hover:bg-[var(--surface-hover)]"
                     >
                       {st}
                     </button>
@@ -472,7 +467,6 @@ export function CompanionPage() {
                 <ChatMessage
                   key={m.id}
                   message={m}
-                  number={numbers.get(m.id)}
                   thoughtSeconds={thoughtDurations[m.id]}
                   writing={status === "streaming" && currentAssistant?.id === m.id && Boolean(currentText)}
                 />
@@ -480,11 +474,7 @@ export function CompanionPage() {
               {isThinking && thinkingStartedAt && (
                 <ThinkingActivity startedAt={thinkingStartedAt} reasoning={currentReasoning} />
               )}
-              {error && (
-                <div className="rounded-xl border border-[var(--danger)]/35 bg-[var(--danger)]/10 px-3.5 py-2.5 text-[13.5px] text-[var(--fg)]">
-                  {sampleErrorCopy(error, "Something went wrong — try again.")}
-                </div>
-              )}
+              {error && <Notice>{sampleErrorCopy(error, "Something went wrong. Try again.")}</Notice>}
             </>
           )}
         </div>
@@ -501,24 +491,22 @@ export function CompanionPage() {
       />
 
       {/* Composer */}
-      <div className="shrink-0">
-        <div className="notebook">
-          <div className="relative">
-            <span className="margin-note" style={{ top: 18 }} aria-hidden="true">
-              Q{numbers.size + 1}.
-            </span>
-            <Composer
-              value={input}
-              onChange={setInput}
-              onSubmit={() => submit(input)}
-              onStop={stop}
-              busy={isLoading}
-              canSend={!!input.trim() && !isLoading}
-              placeholder="Ask about your material…"
-              inputRef={inputRef}
-            />
-          </div>
-          <p className="py-2 text-[11.5px] text-[var(--fg-faint)]">{ANSWER_DISCLAIMER}</p>
+      <div className="shrink-0 px-3 pb-3 sm:px-6 sm:pb-5">
+        <div className="mx-auto w-full max-w-[780px]">
+          <Composer
+            value={input}
+            onChange={setInput}
+            onSubmit={() => submit(input)}
+            onStop={stop}
+            busy={isLoading}
+            canSend={!!input.trim() && !isLoading}
+            placeholder="Ask about your material…"
+            inputRef={inputRef}
+            voice={IS_WEB}
+          />
+          <p className="pt-2 text-center text-[11.5px] text-[var(--fg-faint)]">
+            AceMate can make mistakes. Check important facts.
+          </p>
         </div>
       </div>
     </div>
@@ -567,16 +555,16 @@ function CompanionActivity({
     return Math.min(4, Math.ceil((count / max) * 4));
   };
   const dotClass = [
-    "bg-[color:var(--ice)]/[0.08]",
-    "bg-[color:var(--ice)]/[0.25]",
-    "bg-[color:var(--ice)]/[0.45]",
-    "bg-[color:var(--ice)]/[0.7]",
-    "bg-[color:var(--ice)]",
+    "bg-[var(--line-strong)]",
+    "bg-[rgba(var(--accent-rgb),0.35)]",
+    "bg-[rgba(var(--accent-rgb),0.6)]",
+    "bg-[rgba(var(--accent-3-rgb),0.85)]",
+    "bg-[var(--accent-2)]",
   ];
 
   return (
-    <section className="notebook shrink-0 pb-2">
-      <div className="rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2">
+    <section className="shrink-0 px-3 pb-2 sm:px-6">
+      <div className="glass mx-auto w-full max-w-[780px] rounded-[18px] px-4 py-2.5">
         <button
           type="button"
           onClick={onToggle}

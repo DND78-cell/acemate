@@ -1,19 +1,18 @@
-import type { OrbState } from "thinking-orbs";
+export type AiActivity = "idle" | "thinking" | "writing" | "reading" | "building";
 
-export type AiActivity = "thinking" | "writing" | "reading" | "building";
+/** How the orb looks: resting, working something out, or producing output. */
+export type OrbState = "idle" | "thinking" | "writing";
 
 export interface AiActivityConfig {
   state: OrbState;
   label: string;
 }
 
-/**
- * Single mapping from AceMate activity → thinking-orbs state + label.
- * Only activities AceMate actually performs.
- */
+/** Single mapping from AceMate activity → orb state + label. */
 export const AI_ACTIVITY: Record<AiActivity, AiActivityConfig> = {
-  thinking: { state: "working", label: "Thinking…" },
-  writing: { state: "composing", label: "Writing…" },
-  reading: { state: "working", label: "Reading your pages…" },
-  building: { state: "shaping", label: "Building your page…" },
+  idle: { state: "idle", label: "Ready when you are." },
+  thinking: { state: "thinking", label: "Thinking…" },
+  writing: { state: "writing", label: "Building your answer…" },
+  reading: { state: "thinking", label: "Creating your notes…" },
+  building: { state: "writing", label: "Building your page…" },
 };

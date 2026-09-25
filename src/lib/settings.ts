@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 export type ResponseStyle = "concise" | "balanced" | "detailed";
 export type TextSize = "small" | "medium" | "large";
-export type Theme = "graphite" | "ocean" | "chalk" | "light";
+export type Theme = "space" | "light";
 export type ModelId = "aceOne" | "aceUltra";
 export type EffortMode = "quick" | "balanced" | "max";
 
@@ -22,7 +22,7 @@ export const THEME_KEY = "acemate-theme-v2";
 const DEFAULTS: Settings = {
   responseStyle: "balanced",
   textSize: "medium",
-  theme: "graphite",
+  theme: "space",
   model: "aceOne",
   effort: "balanced",
   codeMode: false,
@@ -55,11 +55,12 @@ function isEffort(v: unknown): v is EffortMode {
 }
 
 function isTheme(v: unknown): v is Theme {
-  return v === "graphite" || v === "ocean" || v === "chalk" || v === "light";
+  return v === "space" || v === "light";
 }
 
-// "Warm" became "Chalkboard" in the exercise-book redesign.
-const renamedTheme = (v: string | null) => (v === "warm" ? "chalk" : v);
+// The Glass Space redesign has one dark theme (Space) and Light; earlier
+// dark themes (Graphite, Ocean, Warm, Chalkboard) move to Space.
+const renamedTheme = (v: string | null) => (v && v !== "light" ? "space" : v);
 
 function read(): Settings {
   if (typeof window === "undefined") return DEFAULTS;

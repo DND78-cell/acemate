@@ -39,10 +39,8 @@ const RESPONSE_STYLE_OPTIONS: {
 ];
 
 const THEME_OPTIONS: { value: Theme; label: string; desc: string }[] = [
-  { value: "graphite", label: "Graphite", desc: "Pencil-lead greys with a red margin line." },
-  { value: "ocean", label: "Ocean", desc: "Deep navy with a coral margin line." },
-  { value: "chalk", label: "Chalkboard", desc: "Green-black slate with chalk-white text." },
-  { value: "light", label: "Paper", desc: "Notebook white with blue-black ink." },
+  { value: "space", label: "Space", desc: "Deep space and soft glass. Calm for long study sessions." },
+  { value: "light", label: "Light", desc: "The same study space in daylight." },
 ];
 
 const TEXT_SIZE_OPTIONS: { value: TextSize; label: string; desc: string }[] = [
@@ -92,63 +90,63 @@ export function SettingsPage() {
 
       {view === "root" && (
         <>
-          <h1 className="font-display px-1 pt-4 pb-6 text-[34px] font-bold leading-tight text-[var(--fg)]">
+          <h1 className="font-display px-1 pb-6 pt-3 text-[30px] font-semibold leading-tight text-[var(--fg)]">
             Settings
           </h1>
 
-          <SectionLabel>Chat</SectionLabel>
-          <Row
-            icon={<MessageSquareText className="h-[18px] w-[18px]" strokeWidth={1.75} />}
-            label="Response style"
-            value={currentLabel("response-style") ?? undefined}
-            onClick={() => setView("response-style")}
-          />
-          <Row
-            icon={<Trash2 className="h-[18px] w-[18px]" strokeWidth={1.75} />}
-            label="Clear conversation"
-            danger
-            hideChevron
-            onClick={() => setConfirmClear(true)}
-          />
+          <Section label="Chat">
+            <Row
+              icon={<MessageSquareText className="h-[18px] w-[18px]" strokeWidth={1.6} />}
+              label="Response style"
+              value={currentLabel("response-style") ?? undefined}
+              onClick={() => setView("response-style")}
+            />
+            <Row
+              icon={<Trash2 className="h-[18px] w-[18px]" strokeWidth={1.6} />}
+              label="Clear conversation"
+              danger
+              hideChevron
+              onClick={() => setConfirmClear(true)}
+            />
+          </Section>
 
-          <SectionLabel>Model</SectionLabel>
-          <Row
-            icon={<Sparkles className="h-[18px] w-[18px]" strokeWidth={1.75} />}
-            label="Model"
-            value={currentLabel("model") ?? undefined}
-            onClick={() => setView("model")}
-          />
+          <Section label="Model">
+            <Row
+              icon={<Sparkles className="h-[18px] w-[18px]" strokeWidth={1.6} />}
+              label="Model"
+              value={currentLabel("model") ?? undefined}
+              onClick={() => setView("model")}
+            />
+            <Row
+              icon={<Gauge className="h-[18px] w-[18px]" strokeWidth={1.6} />}
+              label="Effort"
+              value={currentLabel("effort") ?? undefined}
+              onClick={() => setView("effort")}
+            />
+          </Section>
 
-          <SectionLabel>Effort</SectionLabel>
-          <Row
-            icon={<Gauge className="h-[18px] w-[18px]" strokeWidth={1.75} />}
-            label="Effort"
-            value={currentLabel("effort") ?? undefined}
-            onClick={() => setView("effort")}
-          />
+          <Section label="Appearance">
+            <Row
+              icon={<Palette className="h-[18px] w-[18px]" strokeWidth={1.6} />}
+              label="Theme"
+              value={currentLabel("theme") ?? undefined}
+              onClick={() => setView("theme")}
+            />
+            <Row
+              icon={<Type className="h-[18px] w-[18px]" strokeWidth={1.6} />}
+              label="Text size"
+              value={currentLabel("text-size") ?? undefined}
+              onClick={() => setView("text-size")}
+            />
+          </Section>
 
-
-
-          <SectionLabel>Appearance</SectionLabel>
-          <Row
-            icon={<Palette className="h-[18px] w-[18px]" strokeWidth={1.75} />}
-            label="Theme"
-            value={currentLabel("theme") ?? undefined}
-            onClick={() => setView("theme")}
-          />
-          <Row
-            icon={<Type className="h-[18px] w-[18px]" strokeWidth={1.75} />}
-            label="Text size"
-            value={currentLabel("text-size") ?? undefined}
-            onClick={() => setView("text-size")}
-          />
-
-          <SectionLabel>About</SectionLabel>
-          <Row
-            icon={<Info className="h-[18px] w-[18px]" strokeWidth={1.75} />}
-            label="About AceMate"
-            onClick={() => setView("about")}
-          />
+          <Section label="About">
+            <Row
+              icon={<Info className="h-[18px] w-[18px]" strokeWidth={1.6} />}
+              label="About AceMate"
+              onClick={() => setView("about")}
+            />
+          </Section>
         </>
       )}
 
@@ -198,11 +196,11 @@ export function SettingsPage() {
       {confirmClear && (
         <div
           className="fixed inset-0 z-50 flex items-end justify-center px-4 pb-6 sm:items-center sm:pb-0"
-          style={{ background: "var(--overlay-bg)", WebkitBackdropFilter: "blur(4px)", backdropFilter: "blur(4px)" }}
+          style={{ background: "var(--overlay-bg)", WebkitBackdropFilter: "blur(6px)", backdropFilter: "blur(6px)" }}
           onClick={() => setConfirmClear(false)}
         >
           <div
-            className="popover w-full max-w-sm p-5"
+            className="popover w-full max-w-sm rounded-[20px] p-6"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="text-[17px] font-semibold text-[var(--fg)]">
@@ -215,14 +213,14 @@ export function SettingsPage() {
               <button
                 type="button"
                 onClick={() => setConfirmClear(false)}
-                className="chip flex-1 rounded-lg px-3 py-2 text-sm"
+                className="chip flex-1 rounded-full px-3 py-2 text-sm"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={doClear}
-                className="flex-1 rounded-lg bg-[var(--danger)] px-3 py-2 text-sm font-medium text-white hover:opacity-90"
+                className="flex-1 rounded-full bg-[var(--danger)] px-3 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
               >
                 Clear
               </button>
@@ -236,11 +234,13 @@ export function SettingsPage() {
   );
 }
 
-function SectionLabel({ children }: { children: ReactNode }) {
+/** A labelled group of rows on one glass panel, like a native settings screen. */
+function Section({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="label-mono mt-8 mb-2 px-3 first:mt-2">
-      {children}
-    </div>
+    <section className="mb-6">
+      <div className="section-label px-4 pb-2">{label}</div>
+      <div className="glass overflow-hidden rounded-[18px] [&>*+*]:border-t [&>*+*]:border-[var(--line)]">{children}</div>
+    </section>
   );
 }
 
@@ -263,29 +263,22 @@ function Row({
     <button
       type="button"
       onClick={onClick}
-      className="group flex min-h-[48px] w-full items-center gap-3.5 rounded-xl px-3 text-left transition-colors hover:bg-[var(--surface-hover)]"
+      className="group flex min-h-[52px] w-full items-center gap-3.5 px-4 text-left transition-colors duration-200 hover:bg-[var(--surface-hover)]"
     >
       <span
         className="flex h-6 w-6 shrink-0 items-center justify-center text-[var(--fg-muted)]"
-        style={danger ? { color: "var(--destructive)" } : undefined}
+        style={danger ? { color: "var(--soft-danger)" } : undefined}
       >
         {icon}
       </span>
-      <span
-        className="flex-1 text-[15px] font-normal"
-        style={{
-          color: danger ? "var(--destructive)" : "var(--ice)",
-        }}
-      >
+      <span className="flex-1 text-[15px]" style={{ color: danger ? "var(--soft-danger)" : "var(--fg)" }}>
         {label}
       </span>
-      {value && (
-        <span className="text-[14px] text-[var(--fg-muted)]">{value}</span>
-      )}
+      {value && <span className="text-[14px] text-[var(--fg-muted)]">{value}</span>}
       {!hideChevron && (
         <ChevronRight
-          className="h-5 w-5 text-[color:var(--ice-dim)]/70"
-          strokeWidth={1.5}
+          className="h-[18px] w-[18px] text-[var(--fg-faint)] transition-transform duration-200 group-hover:translate-x-0.5"
+          strokeWidth={1.6}
         />
       )}
     </button>
@@ -305,10 +298,10 @@ function ChoiceView<T extends string>({
 }) {
   return (
     <>
-      <h1 className="font-display px-1 pt-4 pb-6 text-[34px] font-bold leading-tight text-[var(--fg)]">
+      <h1 className="font-display px-1 pb-6 pt-3 text-[30px] font-semibold leading-tight text-[var(--fg)]">
         {title}
       </h1>
-      <div className="flex flex-col gap-1">
+      <div className="glass flex flex-col overflow-hidden rounded-[18px] [&>*+*]:border-t [&>*+*]:border-[var(--line)]">
         {options.map((opt) => {
           const active = opt.value === value;
           return (
@@ -316,7 +309,7 @@ function ChoiceView<T extends string>({
               key={opt.value}
               type="button"
               onClick={() => onChange(opt.value)}
-              className="flex min-h-[60px] w-full items-center gap-4 rounded-xl px-4 text-left transition-colors hover:bg-[var(--surface-hover)]"
+              className="flex min-h-[64px] w-full items-center gap-4 px-4 text-left transition-colors duration-200 hover:bg-[var(--surface-hover)]"
               style={
                 active
                   ? { background: "var(--choice-active-bg)" }
@@ -328,14 +321,14 @@ function ChoiceView<T extends string>({
                 className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border"
                 style={{
                   borderColor: active
-                    ? "var(--ice)"
+                    ? "var(--accent-3)"
                     : "var(--choice-ring)",
                 }}
               >
                 {active && (
                   <span
                     className="h-2.5 w-2.5 rounded-full"
-                    style={{ background: "var(--ice)" }}
+                    style={{ background: "linear-gradient(135deg, var(--accent-3), var(--accent-2))" }}
                   />
                 )}
               </span>
@@ -357,15 +350,11 @@ function ChoiceView<T extends string>({
 
 function AboutView() {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center pt-4 pb-16 text-center">
-      <div className="logo-glow mb-6">
-        <AceMateLogo size={96} glow />
-      </div>
-      <h1 className="font-display text-[32px] font-bold text-[var(--fg)]">AceMate</h1>
-      <p className="mt-1 text-sm text-[color:var(--ice-dim)]">Version 1.0</p>
-      <p className="mt-6 max-w-xs text-base text-[color:var(--ice)]/90">
-        Your study partner.
-      </p>
+    <div className="flex flex-1 flex-col items-center justify-center pb-16 pt-10 text-center">
+      <AceMateLogo size={80} glow />
+      <h1 className="font-display mt-8 text-[30px] font-semibold text-[var(--fg)]">AceMate</h1>
+      <p className="mt-1 text-sm text-[var(--fg-muted)]">Version 1.0</p>
+      <p className="mt-6 max-w-xs text-[15px] text-[var(--fg-muted)]">A calm place to ask, study, practice and create.</p>
     </div>
   );
 }

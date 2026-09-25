@@ -3,11 +3,11 @@ import { useEffect, useState } from "react";
 import {
   BookOpen,
   Code2,
+  LogIn,
+  NotebookPen,
   PanelLeftClose,
   Plus,
-  ScanText,
   Settings as SettingsIcon,
-  LogIn,
   UserRound,
 } from "lucide-react";
 import { AceMateLogo } from "@/components/AceMateLogo";
@@ -16,21 +16,25 @@ import { listChats, type ChatSummary } from "@/lib/persistence";
 import { requestChat, useChatNavState } from "@/lib/chat-nav";
 import { IS_WEB, platform } from "@/platform";
 
-const PAGES = [
-  { label: "Chapter notes", to: "/notes", icon: ScanText },
+const STUDY = [
+  { label: "Notes & quizzes", to: "/notes", icon: NotebookPen },
   { label: "Study companion", to: "/companion", icon: BookOpen },
   { label: "Code", to: "/code", icon: Code2 },
 ] as const;
 
-const firstName = (name?: string | null) => (name ?? "").trim().split(/\s+/)[0] ?? "";
+const ICON = "h-[17px] w-[17px] shrink-0";
 
 const rowClass = (active: boolean) =>
-  `flex h-9 w-full items-center gap-2.5 rounded-lg px-2.5 text-left text-[14px] transition-colors ${
+  `group flex h-9 w-full items-center gap-3 rounded-xl px-3 text-left text-[14px] transition-colors duration-200 ${
     active
-      ? "bg-[var(--surface-hover)] text-[var(--fg)]"
-      : "text-[var(--fg)] hover:bg-[var(--surface-hover)]"
+      ? "bg-[var(--glass-strong)] text-[var(--fg)]"
+      : "text-[var(--fg-muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--fg)]"
   }`;
 
+const iconClass = (active: boolean) =>
+  `${ICON} transition-colors duration-200 ${active ? "text-[var(--accent-ink)]" : "text-[var(--fg-faint)] group-hover:text-[var(--fg-muted)]"}`;
+
+/** The floating glass sidebar: new chat, recent conversations, study tools, settings. */
 export function AppSidebar({
   onNavigate,
   onClose,
@@ -74,140 +78,125 @@ export function AppSidebar({
   const settingsActive = pathname.startsWith("/settings");
 
   return (
-    <nav aria-label="AceMate" className="cover flex h-full flex-col">
-      {/* The name label on the notebook's cover. */}
-      <div className="flex shrink-0 items-start gap-1 pl-3 pr-2 pt-3">
-        <div className="cover-label min-w-0 flex-1">
-          <div className="font-display flex items-center gap-2 text-[19px] font-bold leading-6">
-            <AceMateLogo size={16} />
-            AceMate
-          </div>
-          <div className="cover-label-line mt-1">
-            <span className="label-mono">Name</span>
-            <span className="hand min-w-0 truncate">{loading ? "" : firstName(user?.name) || "Guest"}</span>
-          </div>
-        </div>
+    <nav aria-label="AceMate" className="glass-panel flex h-full flex-col rounded-[22px]">
+      <div className="flex h-14 shrink-0 items-center justify-between pl-4 pr-2">
+        <button
+          type="button"
+          onClick={newChat}
+          className="flex items-center gap-2.5 rounded-lg text-[16px] font-semibold tracking-[-0.01em] text-[var(--fg)]"
+        >
+          <AceMateLogo size={24} />
+          AceMate
+        </button>
         <button
           type="button"
           onClick={onClose}
           aria-label="Close sidebar"
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[var(--fg-muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--fg)]"
+          data-drawer-focus
+          className="round-btn h-8 w-8"
         >
-          <PanelLeftClose className="h-[18px] w-[18px]" strokeWidth={1.75} />
+          <PanelLeftClose className={ICON} strokeWidth={1.6} />
         </button>
       </div>
 
-      <div className="px-3 pt-4">
+      <div className="px-3 pt-1">
         <button
           type="button"
           onClick={newChat}
-          className="flex h-10 w-full items-center gap-2 rounded-[10px] border border-[var(--line-strong)] bg-[var(--surface)] px-3 text-[14px] font-medium text-[var(--fg)] transition-colors hover:bg-[var(--surface-hover)]"
+          className="chip flex h-10 w-full items-center gap-2.5 rounded-xl px-3 text-[14px] font-medium hover:-translate-y-px"
         >
-          <Plus className="h-4 w-4" strokeWidth={2} />
+          <Plus className="h-4 w-4 text-[var(--accent-ink)]" strokeWidth={1.8} />
           New chat
         </button>
       </div>
 
-      <div className="mt-6 flex flex-col gap-0.5 px-2">
-        <div className="label-mono px-2.5 pb-2">Study</div>
-        {PAGES.map((page) => {
-          const Icon = page.icon;
-          return (
-            <Link
-              key={page.to}
-              to={page.to}
-              onClick={onNavigate}
-              className={rowClass(pathname.startsWith(page.to))}
-            >
-              <Icon className="h-4 w-4 text-[var(--fg-muted)]" strokeWidth={1.75} />
-              {page.label}
-            </Link>
-          );
-        })}
-      </div>
-
-      <div className="scrollbar-thin mt-6 min-h-0 flex-1 overflow-y-auto px-2 pb-3">
-        <div className="label-mono px-2.5 pb-2">Recent chats</div>
+      <div className="scrollbar-thin mt-5 min-h-0 flex-1 overflow-y-auto px-2">
+        <div className="section-label px-3 pb-1.5">Recent</div>
         {!user ? (
-          <p className="px-2.5 py-1 text-[13px] leading-snug text-[var(--fg-faint)]">
+          <p className="px-3 py-1 text-[13px] leading-snug text-[var(--fg-faint)]">
             {loading
               ? ""
               : IS_WEB
-                ? "Sign in to save your chats."
-                : "Chats are saved when you open AceMate signed in to claude.ai."}
+                ? "Sign in to keep your conversations."
+                : "Conversations are saved when you open AceMate signed in to claude.ai."}
           </p>
         ) : recents.length === 0 ? (
-          <p className="px-2.5 py-1 text-[13px] text-[var(--fg-faint)]">Your chats will appear here.</p>
+          <p className="px-3 py-1 text-[13px] text-[var(--fg-faint)]">Your conversations will appear here.</p>
         ) : (
-          <ul className="flex flex-col gap-0.5">
-            {recents.map((chat) => (
-              <li key={chat.id}>
-                <button
-                  type="button"
-                  onClick={() => openChat(chat.id)}
-                  className={`${rowClass(pathname === "/" && chat.id === activeChatId)} h-8`}
-                >
-                  <span className="truncate">{chat.title}</span>
-                </button>
-              </li>
-            ))}
+          <ul className="flex flex-col gap-0.5 pb-2">
+            {recents.map((chat) => {
+              const active = pathname === "/" && chat.id === activeChatId;
+              return (
+                <li key={chat.id}>
+                  <button type="button" onClick={() => openChat(chat.id)} className={`${rowClass(active)} h-8 text-[13.5px]`}>
+                    <span className="truncate">{chat.title}</span>
+                  </button>
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>
 
-      <div className="flex shrink-0 items-center gap-1 border-t border-[var(--line)] px-2 py-2">
-        <div className="min-w-0 flex-1">
-          {!user && !loading && IS_WEB ? (
-            <Link to="/auth" onClick={onNavigate} className={`${rowClass(pathname === "/auth")} h-11`}>
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--surface-hover)]">
-                <LogIn className="h-4 w-4 text-[var(--fg-muted)]" strokeWidth={1.75} />
+      <div className="shrink-0 px-2 pt-3">
+        <div className="section-label px-3 pb-1.5">Study</div>
+        <div className="flex flex-col gap-0.5">
+          {STUDY.map((page) => {
+            const Icon = page.icon;
+            const active = pathname.startsWith(page.to);
+            return (
+              <Link key={page.to} to={page.to} onClick={onNavigate} className={rowClass(active)}>
+                <Icon className={iconClass(active)} strokeWidth={1.6} />
+                {page.label}
+              </Link>
+            );
+          })}
+          <Link to="/settings" onClick={onNavigate} className={rowClass(settingsActive)}>
+            <SettingsIcon className={iconClass(settingsActive)} strokeWidth={1.6} />
+            Settings
+          </Link>
+        </div>
+      </div>
+
+      <div className="mx-3 mt-3 shrink-0 border-t border-[var(--line)] py-2">
+        {!user && !loading && IS_WEB ? (
+          <Link to="/auth" onClick={onNavigate} className={`${rowClass(pathname === "/auth")} h-12 px-2`}>
+            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[var(--glass-strong)]">
+              <LogIn className="h-4 w-4 text-[var(--fg-muted)]" strokeWidth={1.6} />
+            </span>
+            <span className="min-w-0 flex-1 leading-tight">
+              <span className="block truncate text-[13.5px] text-[var(--fg)]">Sign in</span>
+              <span className="block truncate text-[12px] text-[var(--fg-faint)]">Save your chats and notes</span>
+            </span>
+          </Link>
+        ) : (
+          <div className="flex h-12 items-center gap-2.5 px-2">
+            {user?.avatarUrl ? (
+              <img src={user.avatarUrl} alt="" className="h-8 w-8 shrink-0 rounded-full object-cover" />
+            ) : (
+              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[linear-gradient(135deg,rgba(var(--accent-rgb),0.35),rgba(var(--accent-2-rgb),0.25))] text-[12px] font-semibold uppercase text-[var(--fg)]">
+                {user ? (user.name || "?").slice(0, 1) : <UserRound className="h-4 w-4 text-[var(--fg-muted)]" strokeWidth={1.6} />}
               </span>
-              <span className="min-w-0 flex-1 leading-tight">
-                <span className="block truncate text-[13.5px]">Sign in</span>
-                <span className="block truncate text-[12px] text-[var(--fg-faint)]">Save your chats and notes</span>
-              </span>
-            </Link>
-          ) : (
-            <div className="flex h-11 items-center gap-2.5 rounded-lg px-2.5">
-              {user?.avatarUrl ? (
-                <img src={user.avatarUrl} alt="" className="h-7 w-7 shrink-0 rounded-full object-cover" />
-              ) : (
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--surface-hover)] text-[12px] font-medium uppercase text-[var(--fg)]">
-                  {user ? (user.name || "?").slice(0, 1) : <UserRound className="h-4 w-4 text-[var(--fg-muted)]" strokeWidth={1.75} />}
-                </span>
-              )}
-              <div className="min-w-0 flex-1 leading-tight">
-                <div className="truncate text-[13.5px] text-[var(--fg)]">
-                  {user ? user.name || "Signed in" : loading ? "" : "Guest"}
-                </div>
-                {user && platform.accounts ? (
-                  <button
-                    type="button"
-                    onClick={() => void platform.accounts?.signOut()}
-                    className="text-[12px] text-[var(--fg-faint)] underline-offset-2 hover:text-[var(--fg)] hover:underline"
-                  >
-                    Sign out
-                  </button>
-                ) : (
-                  <div className="truncate text-[12px] text-[var(--fg-faint)]">
-                    {user ? (IS_WEB ? "Signed in" : "Saved to claude.ai") : loading ? "" : "Chats aren't saved"}
-                  </div>
-                )}
+            )}
+            <div className="min-w-0 flex-1 leading-tight">
+              <div className="truncate text-[13.5px] text-[var(--fg)]">
+                {user ? user.name || "Signed in" : loading ? "" : "Guest"}
+              </div>
+              <div className="truncate text-[12px] text-[var(--fg-faint)]">
+                {user ? (IS_WEB ? "Signed in" : "Saved to claude.ai") : loading ? "" : "Chats aren't saved"}
               </div>
             </div>
-          )}
-        </div>
-        <Link
-          to="/settings"
-          onClick={onNavigate}
-          aria-label="Settings"
-          title="Settings"
-          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors hover:bg-[var(--surface-hover)] hover:text-[var(--fg)] ${
-            settingsActive ? "bg-[var(--surface-hover)] text-[var(--fg)]" : "text-[var(--fg-muted)]"
-          }`}
-        >
-          <SettingsIcon className="h-[18px] w-[18px]" strokeWidth={1.75} />
-        </Link>
+            {user && platform.accounts && (
+              <button
+                type="button"
+                onClick={() => void platform.accounts?.signOut()}
+                className="shrink-0 rounded-lg px-2 py-1 text-[12.5px] text-[var(--fg-muted)] transition-colors hover:bg-[var(--surface-hover)] hover:text-[var(--fg)]"
+              >
+                Sign out
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </nav>
   );

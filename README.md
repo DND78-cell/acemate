@@ -1,17 +1,17 @@
 # AceMate
 
 An AI chat and study assistant powered by Claude: chat with image upload, a Code
-screen with live preview, Chapter Notes (photos → summary, flashcards, quiz) and a
+screen with live preview, Notes & quizzes (photos → summary, flashcards, quiz) and a
 study Companion with an activity heatmap.
 
-It looks like a spiral-bound exercise book. The sidebar is the cover, with a
-name label; the page has ruled lines and a red margin. Your questions are
-handwritten on the lines (Kalam) with Q1., Q2… in the margin, and AceMate's
-answers are printed sheets taped onto the page, marked "Ans.". Flashcards are
-index cards, and so is the message box. Each theme writes with its own tool:
-Graphite (default) in pencil, Paper in blue ballpoint, Chalkboard in chalk,
-Ocean in pale ink. Headings use Bricolage Grotesque; answers use Atkinson
-Hyperlegible, which keeps 0/O and 1/l/I distinct.
+It's designed as a calm study space: a deep-space background with a fine
+starfield, floating glass for the sidebar and the command bar, and solid,
+high-contrast content on top. AceMate's presence is a small energy orb that
+breathes at rest, gathers a ring and orbiting sparks while it thinks, and sends
+sparks outward while it writes (pure CSS, and still when "reduce motion" is on).
+The command bar takes text, images and, where the browser supports it, voice.
+Themes: Space (default) and Light. Type is Onest; code is Atkinson Hyperlegible
+Mono.
 
 The same code runs two ways:
 
@@ -137,8 +137,7 @@ assemble.mjs   Inlines the artifact build into one claude.ai page
   provider before relying on either.
 - Hourly limits are counted in the database, so they hold across restarts and
   across Vercel's many function instances.
-
-## Credits
-
-`src/components/ui/corner-button.tsx` is CornerButton from
-[VengeanceUI](https://github.com/Ashutoshx7/VengeanceUI) (MIT License).
+- Voice typing uses the browser's own speech recognition (in Chrome the audio
+  goes to Google's speech service, in Safari to Apple's); nothing is recorded by
+  AceMate's server. The site allows the microphone only for its own pages
+  (`Permissions-Policy: microphone=(self)`).

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
-import { ArrowUp, Check, ChevronDown, Square } from "lucide-react";
-import { LiquidMetalIconButton } from "@/components/LiquidMetal";
+import { ArrowUp, Check, ChevronDown, Mic, Square } from "lucide-react";
+import { dictationSupported, useDictation } from "@/lib/dictation";
 import {
   EFFORT_OPTIONS,
   MODEL_OPTIONS,
@@ -11,9 +11,9 @@ import {
 } from "@/lib/settings";
 
 /**
- * The message box, drawn as an index card: a red line across the top and
- * ruled lines to write on. What you type shows in handwriting, the same as
- * your questions on the page.
+ * The command bar: a floating glass container with the message on top and
+ * controls along the bottom edge (attachments and modes on the left; model,
+ * voice and send on the right).
  */
 export function Composer({
   value,
@@ -28,6 +28,7 @@ export function Composer({
   leading,
   trailing,
   autoFocus,
+  voice = false,
 }: {
   value: string;
   onChange: (v: string) => void;
@@ -41,16 +42,26 @@ export function Composer({
   leading?: ReactNode;
   trailing?: ReactNode;
   autoFocus?: boolean;
+  /** Offer voice typing where the browser supports it. */
+  voice?: boolean;
 }) {
   const ownRef = useRef<HTMLTextAreaElement>(null);
   const ref = inputRef ?? ownRef;
+  const valueRef = useRef(value);
+  valueRef.current = value;
+  const [canDictate] = useState(() => voice && dictationSupported());
+  const dictation = useDictation((text) => {
+    const current = valueRef.current;
+    onChange(current.trim() ? `${current.replace(/\s+$/, "")} ${text}` : text);
+    ref.current?.focus();
+  });
 
   // Grow with the text up to a limit, then scroll.
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
     el.style.height = "auto";
-    el.style.height = `${Math.min(el.scrollHeight, 224)}px`;
+    el.style.height = `${Math.min(el.scrollHeight, 208)}px`;
   }, [value, ref]);
 
   useEffect(() => {
@@ -63,7 +74,7 @@ export function Composer({
         e.preventDefault();
         if (!busy) onSubmit();
       }}
-      className="index-card px-3 pb-2.5 pt-[18px] transition-colors"
+      className="glass-panel command-bar"
     >
       {top}
       <textarea
@@ -80,18 +91,36 @@ export function Composer({
         rows={1}
         placeholder={placeholder}
         aria-label={placeholder}
-        className="hand-input card-lines scrollbar-thin block max-h-[224px] min-h-[28px] w-full resize-none bg-transparent px-1.5 outline-none focus-visible:outline-none"
+        className="command-input scrollbar-thin block max-h-[208px] min-h-[26px] w-full resize-none bg-transparent px-1 outline-none focus-visible:outline-none"
       />
-      <div className="mt-2 flex items-center gap-1.5">
+      {dictation.error && (
+        <p role="status" className="fade-in px-1 pt-1 text-[12.5px] text-[var(--fg-muted)]">
+          {dictation.error}
+        </p>
+      )}
+      <div className="mt-2 flex items-center gap-1">
         {leading}
         <div className="flex-1" />
         {trailing}
+        {canDictate && (
+          <button
+            type="button"
+            onClick={() => (dictation.listening ? dictation.stop() : dictation.start())}
+            disabled={busy}
+            aria-pressed={dictation.listening}
+            aria-label={dictation.listening ? "Stop listening" : "Speak your question"}
+            title={dictation.listening ? "Stop listening" : "Speak"}
+            className={`round-btn ${dictation.listening ? "mic-on" : ""}`}
+          >
+            <Mic className="h-[18px] w-[18px]" strokeWidth={1.6} />
+          </button>
+        )}
         {busy && onStop ? (
-          <LiquidMetalIconButton type="button" onClick={onStop} boosted aria-label="Stop answering" title="Stop">
+          <button type="button" onClick={onStop} aria-label="Stop answering" title="Stop" className="round-btn stop-btn">
             <Square className="h-3 w-3" fill="currentColor" strokeWidth={0} />
-          </LiquidMetalIconButton>
+          </button>
         ) : (
-          <LiquidMetalIconButton
+          <button
             type="submit"
             aria-label="Send"
             title={canSend ? "Send" : "Type a message to send"}
@@ -104,9 +133,10 @@ export function Composer({
                 ref.current?.focus();
               }
             }}
+            className="round-btn send-btn"
           >
-            <ArrowUp className="h-4 w-4" strokeWidth={2.25} />
-          </LiquidMetalIconButton>
+            <ArrowUp className="h-[18px] w-[18px]" strokeWidth={2} />
+          </button>
         )}
       </div>
     </form>
@@ -124,7 +154,7 @@ export function ModeToggle<T extends string>({
   onChange: (v: T) => void;
 }) {
   return (
-    <div role="radiogroup" className="inline-flex h-8 items-center rounded-lg border border-[var(--line)] p-0.5">
+    <div role="radiogroup" className="inline-flex h-8 items-center rounded-full border border-[var(--line)] p-0.5">
       {options.map((opt) => {
         const active = opt.value === value;
         return (
@@ -134,9 +164,9 @@ export function ModeToggle<T extends string>({
             role="radio"
             aria-checked={active}
             onClick={() => onChange(opt.value)}
-            className={`h-full rounded-md px-2.5 text-[13px] transition-colors ${
+            className={`h-full rounded-full px-3 text-[12.5px] transition-colors duration-200 ${
               active
-                ? "bg-[var(--surface-hover)] text-[var(--fg)]"
+                ? "bg-[var(--glass-strong)] text-[var(--fg)] shadow-[inset_0_0_0_1px_var(--line)]"
                 : "text-[var(--fg-muted)] hover:text-[var(--fg)]"
             }`}
           >
@@ -185,14 +215,14 @@ function MenuOption({
       role="menuitemradio"
       aria-checked={active}
       onClick={onClick}
-      className="flex w-full items-start gap-2 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-[var(--surface-hover)]"
+      className="flex w-full items-start gap-2 rounded-xl px-3 py-2 text-left transition-colors duration-200 hover:bg-[var(--surface-hover)]"
     >
       <span className="flex-1">
         <span className="block text-[14px] text-[var(--fg)]">{label}</span>
         <span className="mt-0.5 block text-[12.5px] text-[var(--fg-muted)]">{desc}</span>
       </span>
       <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center">
-        {active && <Check className="h-4 w-4 text-[var(--fg)]" strokeWidth={2} />}
+        {active && <Check className="h-4 w-4 text-[var(--accent-ink)]" strokeWidth={2} />}
       </span>
     </button>
   );
@@ -225,7 +255,7 @@ export function ModelMenu({
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="flex h-8 items-center gap-1.5 whitespace-nowrap rounded-lg px-2 text-[13.5px] text-[var(--fg)] transition-colors hover:bg-[var(--surface-hover)]"
+        className="flex h-8 items-center gap-1.5 whitespace-nowrap rounded-full px-3 text-[13px] text-[var(--fg)] transition-colors duration-200 hover:bg-[var(--surface-hover)]"
       >
         <span>{modelLabel(model)}</span>
         {effort && <span className="hidden text-[var(--fg-muted)] min-[440px]:inline">{effortLabel(effort)}</span>}
@@ -234,11 +264,11 @@ export function ModelMenu({
       {open && (
         <div
           role="menu"
-          className={`popover absolute right-0 z-30 w-[272px] p-1.5 ${
+          className={`popover absolute right-0 z-30 w-[280px] p-1.5 ${
             placement === "up" ? "bottom-full mb-2" : "top-full mt-2"
           }`}
         >
-          <div className="px-2.5 pb-1 pt-1.5 text-[12px] font-medium text-[var(--fg-faint)]">Model</div>
+          <div className="section-label px-3 pb-1 pt-1.5">Model</div>
           {MODEL_OPTIONS.map((opt) => (
             <MenuOption
               key={opt.value}
@@ -254,7 +284,7 @@ export function ModelMenu({
           {effort && onEffort && (
             <>
               <div className="mx-2 my-1.5 border-t border-[var(--line)]" />
-              <div className="px-2.5 pb-1 pt-1 text-[12px] font-medium text-[var(--fg-faint)]">Effort</div>
+              <div className="section-label px-3 pb-1 pt-1">Effort</div>
               {EFFORT_OPTIONS.map((opt) => (
                 <MenuOption
                   key={opt.value}

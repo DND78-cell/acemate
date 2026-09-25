@@ -1,5 +1,5 @@
 import { TopBar } from "@/components/TopBar";
-import { DateStamp } from "@/components/Notebook";
+import { Notice } from "@/components/Notice";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Camera,
@@ -11,7 +11,6 @@ import {
   ChevronRight,
   RotateCcw,
 } from "lucide-react";
-import { AceMateLogo } from "@/components/AceMateLogo";
 import { AceMateOrb } from "@/components/ai/AceMateOrb";
 import { useSettings } from "@/lib/settings";
 import { generateNotes, type NotesResult } from "@/lib/notes";
@@ -340,7 +339,7 @@ export function NotesPage() {
     idle: "",
     reading: "Reading your pages…",
     understanding: "Understanding the chapter…",
-    building: "Building your notes…",
+    building: "Creating your notes…",
     ready: "",
     error: "",
   };
@@ -349,228 +348,191 @@ export function NotesPage() {
     <div className="flex h-full flex-col">
       <TopBar />
       <div className="scrollbar-thin min-h-0 flex-1 overflow-y-auto">
-    <div className="notebook notebook-lined notebook-draw flex min-h-full flex-col">
-      <div className="absolute right-4 top-3 md:right-8">
-        <DateStamp />
-      </div>
-      <div className="flex w-full max-w-[620px] flex-col">
-      <h1 className="font-display pt-[56px] text-[34px] font-bold leading-[56px] text-[var(--fg)] sm:text-[42px]">
-        Chapter notes
-      </h1>
-      <p className="pb-7 text-[14.5px] leading-[28px] text-[var(--fg-muted)]">
-        Snap the pages of a chapter and I'll turn them into a summary,
-        flashcards and a quiz.
-      </p>
+        <div className="mx-auto flex w-full max-w-[680px] flex-col px-4 pb-14 pt-2 sm:px-6">
+          <h1 className="font-display text-[30px] font-semibold leading-tight text-[var(--fg)]">Notes & quizzes</h1>
+          <p className="mt-2 pb-7 text-[15px] leading-relaxed text-[var(--fg-muted)]">
+            Photograph the pages of a chapter and AceMate turns them into a summary, flashcards and a quiz.
+          </p>
 
-      {!result && (
-        <>
-          <label htmlFor="notes-subject" className="label-mono">
-            Subject
-          </label>
-          <input
-            id="notes-subject"
-            value={subject}
-            onChange={(e) => setSubject(e.target.value)}
-            disabled={isBusy}
-            placeholder="Biology, chapter 4: Photosynthesis"
-            className="hand-input mb-8 w-full border-b border-[var(--line-strong)] bg-transparent px-0.5 pb-1 pt-1 transition-colors focus:border-[var(--margin)] focus:outline-none focus-visible:outline-none disabled:opacity-60"
-          />
+          {!result && (
+            <>
+              <div className="glass rounded-[20px] p-4 sm:p-5">
+                <label htmlFor="notes-subject" className="section-label mb-2 block px-0.5">
+                  Subject or chapter
+                </label>
+                <input
+                  id="notes-subject"
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  disabled={isBusy}
+                  placeholder="e.g. Biology, chapter 4: Photosynthesis"
+                  className="field h-11 w-full rounded-xl px-3.5 text-[15px] disabled:opacity-60"
+                />
 
-          <div className="label-mono mb-2.5">
-            Pages <span className="tabular-nums">{pages.length}/{maxImages}</span>
-          </div>
+                <div className="section-label mb-2 mt-5 px-0.5">
+                  Pages <span className="tabular-nums">{pages.length}/{maxImages}</span>
+                </div>
 
-          <input
-            ref={cameraRef}
-            type="file"
-            accept={imageLimits?.mediaTypes.join(",") || "image/*"}
-            capture="environment"
-            className="hidden"
-            onChange={(e) => {
-              addFiles(e.target.files);
-              if (cameraRef.current) cameraRef.current.value = "";
-            }}
-          />
-          <input
-            ref={galleryRef}
-            type="file"
-            accept={imageLimits?.mediaTypes.join(",") || "image/*"}
-            multiple
-            className="hidden"
-            onChange={(e) => {
-              addFiles(e.target.files);
-              if (galleryRef.current) galleryRef.current.value = "";
-            }}
-          />
-
-          <div className="flex gap-2">
-            <button
-              type="button"
-              disabled={isBusy || !imageLimits || pages.length >= maxImages}
-              onClick={() => cameraRef.current?.click()}
-              className="chip flex-1 inline-flex items-center justify-center gap-2 rounded-xl px-3 py-3 text-[14px] disabled:opacity-40"
-            >
-              <Camera className="h-4 w-4" />
-              Take photo
-            </button>
-            <button
-              type="button"
-              disabled={isBusy || !imageLimits || pages.length >= maxImages}
-              onClick={() => galleryRef.current?.click()}
-              className="chip flex-1 inline-flex items-center justify-center gap-2 rounded-xl px-3 py-3 text-[14px] disabled:opacity-40"
-            >
-              <ImagePlus className="h-4 w-4" />
-              Choose photos
-            </button>
-          </div>
-
-          {limitsChecked && !imageLimits && (
-            <div className="mt-3 rounded-xl border border-[color:var(--ice)]/20 bg-[color:var(--ice)]/[0.06] px-3 py-2.5 text-sm text-[color:var(--ice-dim)]">
-              {IS_WEB
-                ? "Photos can't be sent right now. Reload the page and try again."
-                : "Photos can't be sent from this view. Open AceMate on claude.ai in a browser to make notes."}
-            </div>
-          )}
-
-          {pages.length > 0 && (
-            <div className="mt-3 -mx-1 flex snap-x snap-mandatory gap-2 overflow-x-auto px-1 pb-1">
-              {pages.map((p, i) => (
-                <div
-                  key={p.id}
-                  className="relative shrink-0 snap-start overflow-hidden rounded-xl"
-                  style={{
-                    width: 96,
-                    height: 128,
-                    border: "1px solid rgba(var(--surface-fg-rgb),0.12)",
+                <input
+                  ref={cameraRef}
+                  type="file"
+                  accept={imageLimits?.mediaTypes.join(",") || "image/*"}
+                  capture="environment"
+                  className="hidden"
+                  onChange={(e) => {
+                    addFiles(e.target.files);
+                    if (cameraRef.current) cameraRef.current.value = "";
                   }}
-                >
-                  <img
-                    src={p.previewUrl}
-                    alt={`Page ${i + 1}`}
-                    className="h-full w-full object-cover"
-                  />
-                  <div
-                    className="absolute left-1 top-1 rounded-full px-1.5 text-[10px] font-semibold"
-                    style={{
-                      background: "var(--media-control-bg)",
-                      color: "var(--ice)",
-                    }}
-                  >
-                    {i + 1}
-                  </div>
+                />
+                <input
+                  ref={galleryRef}
+                  type="file"
+                  accept={imageLimits?.mediaTypes.join(",") || "image/*"}
+                  multiple
+                  className="hidden"
+                  onChange={(e) => {
+                    addFiles(e.target.files);
+                    if (galleryRef.current) galleryRef.current.value = "";
+                  }}
+                />
+
+                <div className="flex gap-2">
                   <button
                     type="button"
-                    onClick={() => removePage(p.id)}
-                    aria-label={`Remove page ${i + 1}`}
-                    disabled={isBusy}
-                    className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-[color:var(--media-control-bg)] text-[color:var(--ice)] hover:bg-[color:var(--media-control-bg-hover)]"
+                    disabled={isBusy || !imageLimits || pages.length >= maxImages}
+                    onClick={() => cameraRef.current?.click()}
+                    className="chip inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl px-3 text-[14px] disabled:opacity-40"
                   >
-                    <X className="h-3 w-3" strokeWidth={2.5} />
+                    <Camera className="h-4 w-4 text-[var(--fg-muted)]" strokeWidth={1.6} />
+                    Take photo
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isBusy || !imageLimits || pages.length >= maxImages}
+                    onClick={() => galleryRef.current?.click()}
+                    className="chip inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl px-3 text-[14px] disabled:opacity-40"
+                  >
+                    <ImagePlus className="h-4 w-4 text-[var(--fg-muted)]" strokeWidth={1.6} />
+                    Choose photos
                   </button>
                 </div>
-              ))}
-            </div>
+
+                {limitsChecked && !imageLimits && (
+                  <Notice tone="info" className="mt-3">
+                    {IS_WEB
+                      ? "Photos can't be sent right now. Reload the page and try again."
+                      : "Photos can't be sent from this view. Open AceMate on claude.ai in a browser to make notes."}
+                  </Notice>
+                )}
+
+                {pages.length > 0 && (
+                  <div className="scrollbar-thin -mx-1 mt-3 flex snap-x snap-mandatory gap-2 overflow-x-auto px-1 pb-1">
+                    {pages.map((p, i) => (
+                      <div
+                        key={p.id}
+                        className="msg-in relative shrink-0 snap-start overflow-hidden rounded-xl border border-[var(--line)]"
+                        style={{ width: 96, height: 128 }}
+                      >
+                        <img src={p.previewUrl} alt={`Page ${i + 1}`} className="h-full w-full object-cover" />
+                        <div
+                          className="absolute left-1 top-1 rounded-full px-1.5 text-[10px] font-semibold"
+                          style={{ background: "var(--media-control-bg)", color: "#fff" }}
+                        >
+                          {i + 1}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removePage(p.id)}
+                          aria-label={`Remove page ${i + 1}`}
+                          disabled={isBusy}
+                          className="absolute right-1 top-1 grid h-5 w-5 place-items-center rounded-full bg-[var(--media-control-bg)] text-white hover:bg-[var(--media-control-bg-hover)]"
+                        >
+                          <X className="h-3 w-3" strokeWidth={2.5} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {attachError && <Notice className="mt-3">{attachError}</Notice>}
+
+                <button
+                  type="button"
+                  disabled={pages.length === 0 || isBusy}
+                  onClick={run}
+                  className="btn-primary mt-5 h-12 w-full rounded-full px-4 text-[15px] font-medium"
+                >
+                  {isBusy ? "Working on it…" : "Make my notes"}
+                </button>
+              </div>
+
+              {isBusy && (
+                <div className="flex justify-center py-10">
+                  <AceMateOrb activity="reading" size={56} centered label={stageLabel[stage]} />
+                </div>
+              )}
+
+              {errorMsg && !isBusy && (
+                <Notice
+                  className="mt-4"
+                  action={
+                    <button type="button" onClick={run} className="chip shrink-0 rounded-full px-3 py-1.5 text-[12.5px]">
+                      Try again
+                    </button>
+                  }
+                >
+                  {errorMsg}
+                </Notice>
+              )}
+
+              {user && saved.length > 0 && (
+                <div className="mt-8">
+                  <div className="section-label mb-2 px-1">Saved notes</div>
+                  <div className="glass overflow-hidden rounded-[18px] [&>*+*]:border-t [&>*+*]:border-[var(--line)]">
+                    {saved.map((n) => (
+                      <button
+                        key={n.id}
+                        type="button"
+                        onClick={() => openSaved(n)}
+                        className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors duration-200 hover:bg-[var(--surface-hover)]"
+                      >
+                        <span className="flex-1 truncate text-[15px] text-[var(--fg)]">
+                          {n.title || n.subject || "Chapter notes"}
+                        </span>
+                        <span className="shrink-0 text-[12px] text-[var(--fg-faint)]">{relativeDate(n.created_at)}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
           )}
 
-          {attachError && (
-            <div className="mt-3 rounded-xl border border-[color:var(--destructive)]/40 bg-[color:var(--destructive)]/10 px-3 py-2.5 text-sm text-[color:var(--ice)]">
-              {attachError}
-            </div>
-          )}
-
-          <button
-            type="button"
-            disabled={pages.length === 0 || isBusy}
-            onClick={run}
-            className="mt-6 w-full rounded-xl bg-[color:var(--ice)] px-4 py-3 text-[15px] font-medium text-[color:var(--surface-contrast)] transition disabled:opacity-40"
-          >
-            {isBusy ? stageLabel[stage] : "Make my notes"}
-          </button>
-
-          {isBusy && (
-            <div className="mt-4 flex justify-center py-4">
-              <AceMateOrb activity="reading" size={64} centered />
-            </div>
-          )}
-
-          {errorMsg && !isBusy && (
-            <div className="mt-4 flex flex-col gap-3 rounded-xl border border-[color:var(--destructive)]/40 bg-[color:var(--destructive)]/10 px-3 py-3 text-sm text-[color:var(--ice)]">
-              <div>{errorMsg}</div>
+          {result && !user && !savePromptDismissed && (
+            <div className="glass msg-in mb-5 flex items-center gap-3 rounded-2xl px-4 py-3">
+              <span className="flex-1 text-[14px] text-[var(--fg)]">
+                {IS_WEB ? "Sign in to save these notes." : "Open AceMate signed in to claude.ai to save these notes."}
+              </span>
+              {IS_WEB && (
+                <Link to="/auth" className="btn-primary rounded-full px-4 py-1.5 text-[13px] font-medium">
+                  Sign in
+                </Link>
+              )}
               <button
                 type="button"
-                onClick={run}
-                className="self-start rounded-full bg-[color:var(--ice)] px-3 py-1.5 text-[12px] font-semibold text-[color:var(--surface-contrast)]"
+                aria-label="Dismiss"
+                onClick={() => setSavePromptDismissed(true)}
+                className="round-btn h-8 w-8"
               >
-                Try again
+                <X className="h-4 w-4" strokeWidth={1.6} />
               </button>
             </div>
           )}
 
-          {user && saved.length > 0 && (
-            <div className="mt-8">
-              <div className="mb-2 px-1 text-[13px] font-medium text-[var(--fg-muted)]">
-                Saved notes
-              </div>
-              <div className="flex flex-col">
-                {saved.map((n) => (
-                  <button
-                    key={n.id}
-                    type="button"
-                    onClick={() => openSaved(n)}
-                    className="flex items-center gap-3 rounded-xl px-3 py-3 text-left hover:bg-[var(--surface-hover)]"
-                  >
-                    <span className="flex-1 truncate text-[15px] text-[color:var(--ice)]">
-                      {n.title || n.subject || "Chapter notes"}
-                    </span>
-                    <span className="shrink-0 text-[12px] text-[color:var(--section-label)]">
-                      {relativeDate(n.created_at)}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
+          {result && (
+            <ResultView result={result} subject={subject} tab={tab} setTab={setTab} onStartOver={startOver} />
           )}
-        </>
-      )}
-
-      {result && !user && !savePromptDismissed && (
-        <div className="mt-4 mb-4 flex items-center gap-3 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-4 py-3">
-          <span className="flex-1 text-[14px] text-[color:var(--ice)]">
-            {IS_WEB ? "Sign in to save these notes." : "Open AceMate signed in to claude.ai to save these notes."}
-          </span>
-          {IS_WEB && (
-            <Link
-              to="/auth"
-              className="rounded-lg bg-[var(--primary-bg)] px-3.5 py-1.5 text-[13px] font-medium text-[var(--primary-fg)]"
-            >
-              Sign in
-            </Link>
-          )}
-          <button
-            type="button"
-            aria-label="Dismiss"
-            onClick={() => setSavePromptDismissed(true)}
-            className="flex h-8 w-8 items-center justify-center rounded-full text-[color:var(--section-label)] hover:bg-[color:var(--ice)]/10"
-          >
-            <X className="h-4 w-4" strokeWidth={1.75} />
-          </button>
         </div>
-      )}
-
-      {result && (
-        <ResultView
-          result={result}
-          subject={subject}
-          tab={tab}
-          setTab={setTab}
-          onStartOver={startOver}
-        />
-      )}
-
-
-      <div className="pb-10" />
-      </div>
-    </div>
       </div>
     </div>
   );
@@ -599,12 +561,10 @@ function ResultView({
 
   return (
     <div className="flex flex-col">
-      <div className="label-mono mb-2">{subject.trim() ? `Notes · ${subject.trim()}` : "Notes"}</div>
-      <div className="font-display mb-5 text-[26px] font-bold leading-tight text-[var(--fg)]">
-        {result.title}
-      </div>
+      <div className="section-label mb-1.5">{subject.trim() ? `Notes · ${subject.trim()}` : "Your notes"}</div>
+      <div className="font-display mb-5 text-[26px] font-semibold leading-tight text-[var(--fg)]">{result.title}</div>
 
-      <div className="-mx-1 mb-4 flex gap-1.5 overflow-x-auto px-1 pb-1">
+      <div className="scrollbar-thin -mx-1 mb-4 flex gap-1.5 overflow-x-auto px-1 pb-1">
         {tabs.map((t) => {
           const active = t.key === tab;
           return (
@@ -612,10 +572,10 @@ function ResultView({
               key={t.key}
               type="button"
               onClick={() => setTab(t.key)}
-              className={`h-8 shrink-0 rounded-lg border px-3 text-[13px] transition-colors ${
+              className={`h-8 shrink-0 rounded-full border px-3.5 text-[13px] transition-colors duration-200 ${
                 active
-                  ? "border-[var(--line-strong)] bg-[var(--surface-hover)] text-[var(--fg)]"
-                  : "border-[var(--line)] text-[var(--fg-muted)] hover:text-[var(--fg)]"
+                  ? "border-[rgba(var(--accent-3-rgb),0.4)] bg-[var(--glass-strong)] text-[var(--fg)]"
+                  : "border-[var(--line)] text-[var(--fg-muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--fg)]"
               }`}
             >
               {t.label}
@@ -639,9 +599,9 @@ function ResultView({
       <button
         type="button"
         onClick={onStartOver}
-        className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[var(--line)] px-4 py-3 text-[14px] text-[var(--fg)] hover:bg-[var(--surface-hover)]"
+        className="chip mt-8 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full px-4 text-[14px]"
       >
-        <RotateCcw className="h-4 w-4" />
+        <RotateCcw className="h-4 w-4 text-[var(--fg-muted)]" strokeWidth={1.6} />
         Start over
       </button>
     </div>
@@ -689,16 +649,14 @@ function SummaryPanel({
   subject: string;
 }) {
   return (
-    <div className="glass rounded-xl p-6 sm:p-7">
+    <div className="glass rounded-[20px] p-6 sm:p-7">
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
           <h2 className="font-display text-[24px] font-bold leading-tight text-[var(--fg)]">
             {title}
           </h2>
           {subject.trim() && (
-            <div className="mt-1.5 text-[10px] uppercase tracking-[0.18em] text-[color:var(--ice-dim)]">
-              {subject.trim()}
-            </div>
+            <div className="mt-1.5 text-[12.5px] text-[var(--fg-muted)]">{subject.trim()}</div>
           )}
         </div>
         <CopyButton text={text} />
@@ -721,14 +679,14 @@ function KeyPointsPanel({ points }: { points: string[] }) {
     return <EmptyPanel>No key points found.</EmptyPanel>;
   }
   return (
-    <div className="glass rounded-xl p-4">
+    <div className="glass rounded-[20px] p-5">
       <div className="mb-3 flex justify-end">
         <CopyButton text={asText} />
       </div>
       <ul className="flex flex-col gap-2.5">
         {points.map((p, i) => (
           <li key={i} className="flex gap-2.5 text-[15px] text-[color:var(--ice)]">
-            <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[color:var(--ice)]" />
+            <span className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[linear-gradient(135deg,var(--accent-3),var(--accent-2))]" />
             <span className="leading-relaxed">{p}</span>
           </li>
         ))}
@@ -748,7 +706,7 @@ function TermsPanel({
   return (
     <div className="flex flex-col gap-3">
       {terms.map((t, i) => (
-        <div key={i} className="glass rounded-xl p-4">
+        <div key={i} className="glass rounded-[18px] p-4">
           <div className="text-[15px] font-semibold text-[color:var(--ice)]">
             {t.term}
           </div>
@@ -781,35 +739,46 @@ function FlashcardsPanel({
       <button
         type="button"
         onClick={() => setFlipped((f) => !f)}
-        className="flashcard flex min-h-[224px] flex-col px-5 pb-3 pt-[14px] text-left transition"
+        aria-label={flipped ? "Show the question" : "Show the answer"}
+        className="flip w-full text-left"
       >
-        <span className="label-mono h-[32px] leading-[20px]">{flipped ? "Answer" : "Question"}</span>
-        <span className="flex-1 pt-[2px] text-[17px] leading-[28px] text-[var(--fg)]">
-          {flipped ? card.answer : card.question}
+        <span className={`flip-inner ${flipped ? "is-flipped" : ""}`}>
+          {(["question", "answer"] as const).map((side) => (
+            <span
+              key={side}
+              aria-hidden={flipped ? side === "question" : side === "answer"}
+              className={`flip-face glass flex min-h-[230px] flex-col rounded-[22px] px-6 py-5 ${side === "answer" ? "flip-back" : ""}`}
+            >
+              <span className="section-label">{side === "question" ? "Question" : "Answer"}</span>
+              <span className="flex flex-1 items-center py-4 text-[18px] leading-relaxed text-[var(--fg)]">
+                {side === "question" ? card.question : card.answer}
+              </span>
+              <span className="self-end text-[11.5px] text-[var(--fg-faint)]">Tap to flip</span>
+            </span>
+          ))}
         </span>
-        <span className="mt-3 self-end text-[11px] text-[var(--fg-faint)]">Tap to flip</span>
       </button>
       <div className="mt-4 flex items-center justify-between">
         <button
           type="button"
           onClick={() => go(-1)}
           disabled={i === 0}
-          className="chip inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] disabled:opacity-40"
+          className="chip inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[12.5px] disabled:opacity-40"
         >
-          <ChevronLeft className="h-3.5 w-3.5" />
+          <ChevronLeft className="h-3.5 w-3.5" strokeWidth={1.8} />
           Previous
         </button>
-        <div className="text-[12px] text-[color:var(--ice-dim)]">
+        <div className="text-[12.5px] tabular-nums text-[var(--fg-muted)]">
           {i + 1} / {cards.length}
         </div>
         <button
           type="button"
           onClick={() => go(1)}
           disabled={i === cards.length - 1}
-          className="chip inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] disabled:opacity-40"
+          className="chip inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[12.5px] disabled:opacity-40"
         >
           Next
-          <ChevronRight className="h-3.5 w-3.5" />
+          <ChevronRight className="h-3.5 w-3.5" strokeWidth={1.8} />
         </button>
       </div>
     </div>
@@ -842,8 +811,8 @@ function QuizPanel({
       0,
     );
     return (
-      <div className="glass flex flex-col items-center rounded-2xl px-5 py-8 text-center">
-        <div className="font-display text-[36px] font-bold text-[var(--fg)]">
+      <div className="glass msg-in flex flex-col items-center rounded-[22px] px-5 py-9 text-center">
+        <div className="font-display text-[40px] font-semibold tabular-nums text-[var(--fg)]">
           {score} / {quiz.length}
         </div>
         <div className="mt-1 text-[14px] text-[color:var(--ice-dim)]">
@@ -852,7 +821,7 @@ function QuizPanel({
         <button
           type="button"
           onClick={reset}
-          className="mt-6 rounded-full bg-[color:var(--ice)] px-4 py-2 text-[13px] font-semibold text-[color:var(--surface-contrast)]"
+          className="btn-primary mt-6 rounded-full px-5 py-2 text-[13px] font-medium"
         >
           Try again
         </button>
@@ -875,10 +844,10 @@ function QuizPanel({
 
   return (
     <div className="flex flex-col">
-      <div className="mb-3 text-[13px] font-medium text-[var(--fg-muted)]">
-        Question {i + 1} / {quiz.length}
+      <div className="section-label mb-2 px-1 tabular-nums">
+        Question {i + 1} of {quiz.length}
       </div>
-      <div className="glass rounded-xl p-4">
+      <div className="glass rounded-[20px] p-5">
         <div className="mb-4 text-[16px] leading-relaxed text-[color:var(--ice)]">
           {q.question}
         </div>
@@ -886,15 +855,15 @@ function QuizPanel({
           {q.options.map((opt, idx) => {
             const isCorrect = idx === q.correctIndex;
             const isChosen = chosen === idx;
-            let bg = "rgba(var(--surface-fg-rgb),0.05)";
-            let border = "rgba(var(--surface-fg-rgb),0.12)";
+            let bg = "var(--glass)";
+            let border = "var(--line)";
             if (answered) {
               if (isCorrect) {
-                bg = "rgba(74, 222, 128, 0.15)";
-                border = "rgba(74, 222, 128, 0.55)";
+                bg = "rgba(52, 211, 153, 0.12)";
+                border = "rgba(52, 211, 153, 0.5)";
               } else if (isChosen) {
-                bg = "rgba(248, 113, 113, 0.15)";
-                border = "rgba(248, 113, 113, 0.55)";
+                bg = "rgba(251, 113, 133, 0.1)";
+                border = "rgba(251, 113, 133, 0.45)";
               }
             }
             return (
@@ -903,7 +872,7 @@ function QuizPanel({
                 type="button"
                 onClick={() => pick(idx)}
                 disabled={answered}
-                className="rounded-xl px-3 py-2.5 text-left text-[14px] text-[color:var(--ice)] transition"
+                className="rounded-xl px-4 py-3 text-left text-[14.5px] text-[var(--fg)] transition-colors duration-200 enabled:hover:bg-[var(--glass-strong)]"
                 style={{ background: bg, border: `1px solid ${border}` }}
               >
                 {opt}
@@ -917,7 +886,7 @@ function QuizPanel({
           type="button"
           disabled={!answered}
           onClick={() => setI((n) => n + 1)}
-          className="rounded-full bg-[color:var(--ice)] px-4 py-2 text-[13px] font-semibold text-[color:var(--surface-contrast)] disabled:opacity-40"
+          className="btn-primary rounded-full px-5 py-2 text-[13px] font-medium"
         >
           {i === quiz.length - 1 ? "See score" : "Next question"}
         </button>
@@ -928,7 +897,7 @@ function QuizPanel({
 
 function EmptyPanel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="glass rounded-xl px-4 py-6 text-center text-[14px] text-[color:var(--ice-dim)]">
+    <div className="glass rounded-[18px] px-4 py-6 text-center text-[14px] text-[var(--fg-muted)]">
       {children}
     </div>
   );
