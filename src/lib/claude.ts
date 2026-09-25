@@ -115,6 +115,8 @@ export function sampleErrorCopy(e: unknown, fallback: string): string {
       return "That's too much to send at once. Try a smaller image or less text.";
     case "network":
       return "Couldn't reach AceMate's server. Check your connection and try again.";
+    case "no_database":
+      return "AceMate's database isn't connected yet. The site owner needs to add one.";
     default:
       return fallback;
   }

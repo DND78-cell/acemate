@@ -11,7 +11,7 @@ The same code runs two ways:
 |---|---|---|
 | AI | Your Anthropic API key, on the server | The viewer's own claude.ai account |
 | Sign-in | Email + password accounts | The claude.ai account |
-| Saved data | SQLite database file on your server | The viewer's private claude.ai storage |
+| Saved data | Postgres (on Vercel) or a SQLite file on your server | The viewer's private claude.ai storage |
 | Build | `npm run build` + `npm start` | `npm run build:artifact` → `out/acemate.html` |
 
 ## Run the website on your computer
@@ -30,7 +30,23 @@ terminals and open the address Vite prints; the page reloads as you edit.
 
 ## Put it online
 
-Any host that runs Node or Docker works. Three things matter:
+**On Vercel** (the included `vercel.json` sets everything up; the API runs as a
+Vercel Function from `api/index.js`):
+
+1. Put this folder in a GitHub repository, then in Vercel choose **Add New →
+   Project** and import that repository. Keep the settings it detects (Vite,
+   `npm run build`, output `dist/web`). Under **Environment Variables**, add
+   `ANTHROPIC_API_KEY` with your key, then press **Deploy**.
+2. In the project's **Storage** tab, create a **Neon** Postgres database and
+   connect it to the project. Vercel adds `DATABASE_URL` for you; AceMate
+   creates its tables on the first request.
+3. Open **Deployments**, choose the latest one's **⋯ → Redeploy** so it picks up
+   the database, then open your `….vercel.app` address.
+
+Photos are shrunk in the browser so each request stays under Vercel's 4.5 MB
+limit, and answers stream as they're written.
+
+**Elsewhere**, any host that runs Node or Docker works. Three things matter:
 
 1. **Set `ANTHROPIC_API_KEY`** in the host's environment settings.
 2. **Keep the database on persistent storage.** Accounts, chats and notes live in
@@ -73,8 +89,9 @@ All in `.env` (see `.env.example`):
 | `ACEMATE_AI_LIMIT_PER_HOUR` | `60` | AI requests per signed-in person per hour |
 | `ACEMATE_GUEST_AI_LIMIT_PER_HOUR` | `10` | AI requests per guest (per IP address) per hour |
 | `ACEMATE_REQUIRE_SIGNIN` | `false` | Require an account before chatting |
-| `ACEMATE_TRUST_PROXY` | `false` | Trust `X-Forwarded-For` (set `true` behind a proxy) |
-| `ACEMATE_DB_PATH` | `data/acemate.db` | Where the database file lives |
+| `ACEMATE_TRUST_PROXY` | `false` (`true` on Vercel) | Trust `X-Forwarded-For` (set `true` behind a proxy) |
+| `DATABASE_URL` | — | A Postgres (Neon) address. When set, it's used instead of the SQLite file |
+| `ACEMATE_DB_PATH` | `data/acemate.db` | Where the SQLite database file lives |
 | `PORT` | `8787` | Web server port |
 
 **Models and effort.** Ace One and Ace Ultra map to the models above; the Effort
@@ -85,13 +102,16 @@ medium / high / max). Claude's thinking is on and its summaries appear under
 ## How it's built
 
 ```
-server/        The backend (Node, Hono, Anthropic SDK, built-in SQLite)
-  index.mjs    Routes: /api/auth, /api/ai/chat (streaming), /api/ai/notes,
-               /api/chats, /api/notes, /api/companion; serves dist/web
+server/        The backend (Node, Hono, Anthropic SDK)
+  app.mjs      Routes: /api/auth, /api/ai/chat (streaming), /api/ai/notes,
+               /api/chats, /api/notes, /api/companion
+  index.mjs    Runs app.mjs and serves dist/web (npm start, Docker, Railway)
   ai.mjs       Claude calls: streaming chat, structured JSON for notes
   auth.mjs     Accounts (scrypt-hashed passwords) and cookie sessions
-  db.mjs       SQLite schema
+  db.mjs       Schema; Postgres (Neon) when DATABASE_URL is set, else SQLite
   limits.mjs   Per-person and per-guest hourly limits
+api/index.js   The same routes as a Vercel Function
+vercel.json    Vercel build, /api routing and headers
 src/           The React app (Vite, Tailwind, TanStack Router)
   platform/    web.ts (talks to server/) and artifact.ts (claude.ai page)
   routes/      Chat, Code, Notes, Companion, Settings, Sign in
@@ -107,8 +127,8 @@ assemble.mjs   Inlines the artifact build into one claude.ai page
   request forgery.
 - Accounts aren't email-verified and there's no password reset yet. Add an email
   provider before relying on either.
-- Limits are kept in memory per server process; they reset on restart and aren't
-  shared between several server instances.
+- Hourly limits are counted in the database, so they hold across restarts and
+  across Vercel's many function instances.
 
 ## Credits
 

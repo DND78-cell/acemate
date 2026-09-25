@@ -14,6 +14,9 @@ import type {
 
 type ApiError = { error?: { code?: string; message?: string } };
 
+/** Error code for a failed response whose body didn't say. */
+const statusCode = (status: number) => (status === 429 ? "rate_limited" : status === 413 ? "too_large" : "upstream_error");
+
 async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   let res: Response;
   try {
@@ -33,7 +36,7 @@ async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   if (!res.ok) {
     const body = (await res.json().catch(() => null)) as ApiError | null;
     throw {
-      code: body?.error?.code ?? (res.status === 429 ? "rate_limited" : "upstream_error"),
+      code: body?.error?.code ?? statusCode(res.status),
       message: body?.error?.message,
     } satisfies AiFailure;
   }
@@ -69,7 +72,17 @@ const asViewer = (u: { id: string; email: string }): AceUser => ({ id: u.id, nam
 
 // ─── Images ──────────────────────────────────────────────────────────────────
 
-const MAX_EDGE = 1568;
+// Sizes to try, largest first. Hosts such as Vercel cap one request at about
+// 4.5 MB, so all the pictures in a message together stay under IMAGE_BUDGET.
+const SIZES = [
+  { edge: 1568, quality: 0.85 },
+  { edge: 1100, quality: 0.75 },
+  { edge: 800, quality: 0.65 },
+  { edge: 560, quality: 0.6 },
+];
+const IMAGE_BUDGET = 3_200_000; // base64 characters
+
+type ApiImage = { mediaType: string; data: string };
 
 function blobToBase64(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -80,26 +93,54 @@ function blobToBase64(blob: Blob): Promise<string> {
   });
 }
 
-/** Resize to Claude's working size and send as JPEG, well under the API's per-image limit. */
-async function toApiImage(blob: Blob): Promise<{ mediaType: string; data: string }> {
+async function encodeJpeg(bitmap: ImageBitmap, edge: number, quality: number): Promise<ApiImage> {
+  const scale = Math.min(1, edge / Math.max(bitmap.width, bitmap.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+  canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("No canvas");
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  const jpeg = await new Promise<Blob>((resolve, reject) =>
+    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("Encode failed"))), "image/jpeg", quality),
+  );
+  return { mediaType: "image/jpeg", data: await blobToBase64(jpeg) };
+}
+
+/**
+ * Resize to Claude's working size and send as JPEG, shrinking further until
+ * the whole set fits the budget. A JPEG that's already small enough is sent
+ * as it is when re-encoding wouldn't make it smaller.
+ */
+async function toApiImages(blobs: Blob[]): Promise<ApiImage[]> {
+  if (!blobs.length) return [];
+  const originals = await Promise.all(
+    blobs.map(async (b) => ({ mediaType: b.type || "image/jpeg", data: await blobToBase64(b) })),
+  );
+  const bitmaps = await Promise.all(blobs.map((b) => createImageBitmap(b).catch(() => null)));
   try {
-    const bitmap = await createImageBitmap(blob);
-    const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height));
-    const canvas = document.createElement("canvas");
-    canvas.width = Math.max(1, Math.round(bitmap.width * scale));
-    canvas.height = Math.max(1, Math.round(bitmap.height * scale));
-    const ctx = canvas.getContext("2d");
-    if (!ctx) throw new Error("No canvas");
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-    bitmap.close();
-    const jpeg = await new Promise<Blob>((resolve, reject) =>
-      canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("Encode failed"))), "image/jpeg", 0.85),
-    );
-    return { mediaType: "image/jpeg", data: await blobToBase64(jpeg) };
-  } catch {
-    return { mediaType: blob.type || "image/jpeg", data: await blobToBase64(blob) };
+    let images = originals;
+    for (const { edge, quality } of SIZES) {
+      images = await Promise.all(
+        bitmaps.map(async (bitmap, i) => {
+          const original = originals[i];
+          if (!bitmap) return original;
+          const fits = original.mediaType === "image/jpeg" && Math.max(bitmap.width, bitmap.height) <= edge;
+          try {
+            const encoded = await encodeJpeg(bitmap, edge, quality);
+            return fits && original.data.length <= encoded.data.length ? original : encoded;
+          } catch {
+            return original;
+          }
+        }),
+      );
+      if (images.reduce((n, img) => n + img.data.length, 0) <= IMAGE_BUDGET) break;
+    }
+    return images;
+  } finally {
+    bitmaps.forEach((b) => b?.close());
   }
 }
 
@@ -115,7 +156,7 @@ export const webPlatform: Platform = {
   kind: "web",
 
   async chat(call, { signal, onText, onReasoning }) {
-    const images = await Promise.all(call.images.map(toApiImage));
+    const images = await toApiImages(call.images);
     let res: Response;
     try {
       res = await fetch("/api/ai/chat", {
@@ -137,7 +178,7 @@ export const webPlatform: Platform = {
     if (!res.ok || !res.body) {
       const body = (await res.json().catch(() => null)) as ApiError | null;
       throw {
-        code: body?.error?.code ?? (res.status === 429 ? "rate_limited" : "upstream_error"),
+        code: body?.error?.code ?? statusCode(res.status),
         message: body?.error?.message,
       } satisfies AiFailure;
     }
@@ -187,7 +228,7 @@ export const webPlatform: Platform = {
   },
 
   async notes({ prompt, images, model, effort }) {
-    const payload = await Promise.all(images.map(toApiImage));
+    const payload = await toApiImages(images);
     const { result } = await post<{ result: unknown }>("/api/ai/notes", { prompt, images: payload, model, effort });
     return result;
   },

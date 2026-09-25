@@ -32,27 +32,22 @@ async function verifyPassword(password, stored) {
 }
 
 const sha256 = (s) => createHash("sha256").update(s).digest("hex");
+const normalizeEmail = (email) => String(email ?? "").trim().toLowerCase();
 
 export function createAuth(db, { secureCookies }) {
-  const q = {
-    userByEmail: db.prepare("SELECT id, email, password_hash FROM users WHERE email = ?"),
-    insertUser: db.prepare("INSERT INTO users (id, email, password_hash, created_at) VALUES (?, ?, ?, ?)"),
-    insertSession: db.prepare("INSERT INTO sessions (token_hash, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)"),
-    sessionUser: db.prepare(
-      "SELECT u.id, u.email FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = ? AND s.expires_at > ?",
-    ),
-    deleteSession: db.prepare("DELETE FROM sessions WHERE token_hash = ?"),
-    purgeExpired: db.prepare("DELETE FROM sessions WHERE expires_at <= ?"),
-  };
-
   const isSecure = (c) =>
     secureCookies ?? (c.req.header("x-forwarded-proto") === "https" || new URL(c.req.url).protocol === "https:");
 
-  function startSession(c, userId) {
+  async function startSession(c, userId) {
     const token = randomBytes(32).toString("base64url");
     const now = new Date();
     const expires = new Date(now.getTime() + SESSION_DAYS * 86_400_000);
-    q.insertSession.run(sha256(token), userId, now.toISOString(), expires.toISOString());
+    await db.run("INSERT INTO sessions (token_hash, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)", [
+      sha256(token),
+      userId,
+      now.toISOString(),
+      expires.toISOString(),
+    ]);
     setCookie(c, SESSION_COOKIE, token, {
       httpOnly: true,
       secure: isSecure(c),
@@ -60,50 +55,64 @@ export function createAuth(db, { secureCookies }) {
       path: "/",
       expires,
     });
+    // Tidy expired sessions now and then.
+    if (Math.random() < 0.05) {
+      db.run("DELETE FROM sessions WHERE expires_at <= ?", [now.toISOString()]).catch(() => undefined);
+    }
   }
 
   /** The signed-in user for this request, or null. */
-  function currentUser(c) {
+  async function currentUser(c) {
     const token = getCookie(c, SESSION_COOKIE);
     if (!token) return null;
-    const row = q.sessionUser.get(sha256(token), new Date().toISOString());
+    const row = await db.get(
+      "SELECT u.id, u.email FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = ? AND s.expires_at > ?",
+      [sha256(token), new Date().toISOString()],
+    );
     return row ? { id: row.id, email: row.email } : null;
   }
 
-  async function signUp(c, email, password) {
-    email = String(email ?? "").trim();
-    password = String(password ?? "");
+  async function signUp(c, rawEmail, rawPassword) {
+    const email = normalizeEmail(rawEmail);
+    const password = String(rawPassword ?? "");
     if (!EMAIL_RE.test(email) || email.length > 254) return { error: "Enter a valid email address." };
     if (password.length < 8) return { error: "Use a password of at least 8 characters." };
     if (password.length > 256) return { error: "That password is too long." };
-    if (q.userByEmail.get(email)) return { error: "An account with that email already exists. Sign in instead." };
+    if (await db.get("SELECT id FROM users WHERE email = ?", [email])) {
+      return { error: "An account with that email already exists. Sign in instead." };
+    }
     const id = randomUUID();
-    q.insertUser.run(id, email, await hashPassword(password), new Date().toISOString());
-    startSession(c, id);
+    try {
+      await db.run("INSERT INTO users (id, email, password_hash, created_at) VALUES (?, ?, ?, ?)", [
+        id,
+        email,
+        await hashPassword(password),
+        new Date().toISOString(),
+      ]);
+    } catch {
+      // Two sign-ups for the same address at once: the second one loses.
+      return { error: "An account with that email already exists. Sign in instead." };
+    }
+    await startSession(c, id);
     return { user: { id, email } };
   }
 
-  async function signIn(c, email, password) {
-    const row = q.userByEmail.get(String(email ?? "").trim());
+  async function signIn(c, rawEmail, rawPassword) {
+    const row = await db.get("SELECT id, email, password_hash FROM users WHERE email = ?", [normalizeEmail(rawEmail)]);
     // Hash even when the account doesn't exist so timing doesn't reveal it.
     const ok = row
-      ? await verifyPassword(String(password ?? ""), row.password_hash)
+      ? await verifyPassword(String(rawPassword ?? ""), row.password_hash)
       : (await hashPassword("placeholder"), false);
     if (!row || !ok) return { error: "That email and password don't match an account." };
-    startSession(c, row.id);
+    await startSession(c, row.id);
     return { user: { id: row.id, email: row.email } };
   }
 
-  function signOut(c) {
+  async function signOut(c) {
     const token = getCookie(c, SESSION_COOKIE);
-    if (token) q.deleteSession.run(sha256(token));
-    deleteCookie(c, SESSION_COOKIE, { path: "/" });
+    if (token) await db.run("DELETE FROM sessions WHERE token_hash = ?", [sha256(token)]);
+    deleteCookie(c, SESSION_COOKIE, { path: "/", secure: isSecure(c), httpOnly: true, sameSite: "Lax" });
   }
-
-  // Tidy expired sessions now and then.
-  const purge = () => q.purgeExpired.run(new Date().toISOString());
-  purge();
-  setInterval(purge, 6 * 3_600_000).unref();
 
   return { currentUser, signUp, signIn, signOut };
 }
