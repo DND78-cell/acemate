@@ -9,11 +9,11 @@ import { CornerButton } from "@/components/ui/corner-button";
 import { cn } from "@/lib/utils";
 import { ChatMessage } from "@/components/ChatMessage";
 import { messageText, reasoningText, ThinkingActivity } from "@/components/ai/AiResponseActivity";
-import { useAuth } from "@/hooks/use-auth";
 import { saveChat, loadChat } from "@/lib/persistence";
 import { newId, useAceChat, type MessagePart, type UIMessage } from "@/lib/chat";
 import { currentChat, onChatRequest, rememberChat, takeChatRequest, type ChatRequest } from "@/lib/chat-nav";
 import { sampleErrorCopy } from "@/lib/claude";
+import { pickThought } from "@/lib/thoughts";
 import { getImageLimits } from "@/platform";
 import type { ImageLimits } from "@/platform/types";
 import { chatInstructions, tierFor } from "@/lib/prompts";
@@ -97,18 +97,10 @@ function titleOf(messages: UIMessage[]): string {
   return t.length > 60 ? `${t.slice(0, 60).trim()}…` : t;
 }
 
-function greeting(name: string): string {
-  const h = new Date().getHours();
-  const first = name.trim().split(/\s+/)[0] ?? "";
-  if (h >= 22 || h < 5) return first ? `Still up, ${first}?` : "Still up?";
-  const base = h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
-  return first ? `${base}, ${first}` : base;
-}
-
 export function ChatPage() {
   const shell = useShell();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const [thought, setThought] = useState(() => pickThought());
   const [chatId, setChatId] = useState<string>(() => newId());
   const [input, setInput] = useState("");
   const [attachment, setAttachment] = useState<Attachment | null>(null);
@@ -244,6 +236,7 @@ export function ChatPage() {
     setThoughtDurations({});
     setFallbackNotice(null);
     setOpenStarter(null);
+    setThought((current) => pickThought(current));
     clearAttachment();
   };
 
@@ -485,11 +478,10 @@ export function ChatPage() {
   );
 
   const heading = (
-    <h1 className="flex items-center justify-center gap-3 text-center">
-      <AceMateLogo size={shell.isDesktop ? 34 : 28} />
-      <span className="font-serif text-[32px] font-normal leading-tight text-[var(--fg)] sm:text-[40px]">
-        {greeting(user?.name ?? "")}
-      </span>
+    <h1 className="font-serif text-balance text-center text-[32px] font-normal leading-tight text-[var(--fg)] sm:text-[40px]">
+      {/* In the line, so it stays with the first words when a thought wraps. */}
+      <AceMateLogo size={shell.isDesktop ? 34 : 28} className="mr-3 inline-block align-[-0.15em]" />
+      {thought}
     </h1>
   );
 
