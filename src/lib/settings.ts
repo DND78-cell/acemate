@@ -148,3 +148,19 @@ export function consumeClearConversation(): boolean {
   clearRequested = false;
   return v;
 }
+
+// "See detailed breakdown" in the usage panel opens Settings on its Usage page.
+let usageViewRequested = false;
+
+export function requestSettingsView(view: "usage") {
+  usageViewRequested = view === "usage";
+}
+
+/** Whether Settings should open on Usage. Read-only, so a double render agrees. */
+export function settingsViewRequested(): "usage" | null {
+  return usageViewRequested ? "usage" : null;
+}
+
+export function clearSettingsViewRequest() {
+  usageViewRequested = false;
+}

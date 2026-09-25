@@ -6,6 +6,8 @@
  * capability isn't served, so callers degrade instead of crashing.
  */
 
+import { resetPhrase } from "@/lib/usage-format";
+
 type Sample = typeof Claude.sample;
 type User = typeof Claude.user;
 type Downloads = typeof Claude.downloads;
@@ -71,7 +73,15 @@ export function dataUrlToBlob(dataUrl: string): Blob {
   return new Blob([bytes], { type: mediaType });
 }
 
-export type SampleFailure = { code: string; message?: string; text?: string };
+export type SampleFailure = {
+  code: string;
+  message?: string;
+  text?: string;
+  /** From the website's server when a limit is reached. */
+  limit?: "hour" | "week";
+  retryAfter?: number;
+  guest?: boolean;
+};
 
 export function isSampleFailure(e: unknown): e is SampleFailure {
   return typeof e === "object" && e !== null && typeof (e as { code?: unknown }).code === "string";
@@ -90,8 +100,14 @@ export function sampleErrorCopy(e: unknown, fallback: string): string {
     case "capability_removed":
     case "not_declared":
       return "Claude isn't available for this account right now.";
-    case "rate_limited":
+    case "rate_limited": {
+      const f = e as SampleFailure;
+      const when = typeof f.retryAfter === "number" ? ` It resets ${resetPhrase(Date.now() + f.retryAfter * 1000)}.` : "";
+      const more = f.guest ? " Sign in for a higher limit." : "";
+      if (f.limit === "week") return `You've used this week's AceMate limit.${when}${more}`;
+      if (f.limit === "hour") return `You've used this hour's AceMate limit.${when}${more}`;
       return "You've hit your usage limit for now. Try again in a little while.";
+    }
     case "session_expired":
       return "Your claude.ai session expired. Sign in again, then retry.";
     case "refused":

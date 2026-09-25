@@ -2,6 +2,7 @@ import { dataUrlToBlob, isSampleFailure, sampleErrorCopy } from "@/lib/claude";
 import { platform } from "@/platform";
 import { notesInstructions } from "@/lib/prompts";
 import type { EffortMode, ModelId } from "@/lib/settings";
+import { refreshUsage } from "@/lib/usage";
 
 export type NotesResult = {
   title: string;
@@ -79,5 +80,8 @@ export async function generateNotes(data: {
       return { ok: false, error: "Couldn't read those pages. Try clearer photos or fewer at once." };
     }
     return { ok: false, error: sampleErrorCopy(e, "Notes generation failed. Try again.") };
+  } finally {
+    // Each request counts against the person's limits.
+    void refreshUsage();
   }
 }

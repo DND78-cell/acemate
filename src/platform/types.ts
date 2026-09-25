@@ -10,8 +10,39 @@ import type { EffortMode, ModelId } from "@/lib/settings";
 export type Tier = "quick" | "default" | "complex";
 export type Turn = { role: "user" | "assistant"; content: string };
 
-/** A failed AI call. `code` is stable; `text` is any answer that streamed first. */
-export type AiFailure = { code: string; message?: string; text?: string };
+/**
+ * A failed AI call. `code` is stable; `text` is any answer that streamed first.
+ * A `rate_limited` refusal from the website's server also says which limit
+ * (`limit`), how many seconds until it resets (`retryAfter`), and whether the
+ * caller is a guest.
+ */
+export type AiFailure = {
+  code: string;
+  message?: string;
+  text?: string;
+  limit?: UsageWindow;
+  retryAfter?: number;
+  guest?: boolean;
+};
+
+export type UsageWindow = "hour" | "week";
+
+/** One AI budget: how much of this window is used, and when it starts over. */
+export type UsageLimit = {
+  id: UsageWindow;
+  used: number;
+  limit: number;
+  windowSeconds: number;
+  /** ISO time; null until the first request starts the window. */
+  resetsAt: string | null;
+};
+
+export type UsageReport = {
+  plan: "account" | "guest";
+  limits: UsageLimit[];
+  /** For guests: what an account would get. */
+  accountLimits?: Record<UsageWindow, number>;
+};
 
 export type ImageLimits = { maxCount: number; maxInputBytes: number; mediaTypes: string[] };
 
@@ -61,6 +92,8 @@ export interface Platform {
   /** One structured Chapter Notes answer as parsed JSON; rejects with an AiFailure. */
   notes(req: { prompt: string; images: Blob[]; model: ModelId; effort: EffortMode }): Promise<unknown>;
   imageLimits(): Promise<ImageLimits | null>;
+  /** The caller's AI budgets; null where limits aren't AceMate's own (claude.ai). */
+  usage(): Promise<UsageReport | null>;
   viewer(): Promise<AceUser | null>;
   onViewerChange(fn: () => void): () => void;
   /** Email/password sign-in; only the standalone website has it. */

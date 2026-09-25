@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import { ArrowUp, Check, ChevronDown, Square } from "lucide-react";
 import { LiquidMetalIconButton } from "@/components/LiquidMetal";
+import { useDismiss } from "@/hooks/use-dismiss";
 import {
   EFFORT_OPTIONS,
   MODEL_OPTIONS,
@@ -143,26 +144,6 @@ export function ModeToggle<T extends string>({
       })}
     </div>
   );
-}
-
-function useDismiss(open: boolean, close: () => void) {
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!open) return;
-    const onDown = (e: MouseEvent) => {
-      if (!ref.current?.contains(e.target as Node)) close();
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") close();
-    };
-    document.addEventListener("mousedown", onDown);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("mousedown", onDown);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [open, close]);
-  return ref;
 }
 
 function MenuOption({

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { dataUrlToBlob, type SampleFailure } from "@/lib/claude";
 import type { Tier } from "@/lib/prompts";
 import type { EffortMode, ModelId } from "@/lib/settings";
+import { refreshUsage } from "@/lib/usage";
 import { platform } from "@/platform";
 
 // Same message shape the AI SDK's useChat used, so the original bubbles,
@@ -27,7 +28,8 @@ export type ChatRequest = {
   extraImages?: Blob[];
 };
 
-const MAX_PROMPT_BYTES = 60_000;
+/** The most conversation text one request carries; older turns are left out past it. */
+export const MAX_PROMPT_BYTES = 60_000;
 const encoder = new TextEncoder();
 const bytes = (s: string) => encoder.encode(s).length;
 
@@ -52,6 +54,18 @@ function imagePartsOf(m: UIMessage): FilePart[] {
   );
 }
 
+/** What Claude reads for an earlier message: its text, with any images described. */
+function earlierContent(m: UIMessage): string {
+  const pics = m.role === "user" ? imagePartsOf(m).length : 0;
+  const note = pics ? `\n\n[${pics === 1 ? "An image was" : `${pics} images were`} attached here.]` : "";
+  return `${textOf(m)}${note}`.trim();
+}
+
+/** What Claude reads for the newest message, with `attached` images riding along. */
+function newestContent(m: UIMessage, attached: number): string {
+  return textOf(m) || (attached ? "(Image attached.)" : "") || "(Empty message.)";
+}
+
 /**
  * The conversation as Claude reads it, newest last. Images ride with the
  * newest message only; earlier ones are described in text. The oldest turns
@@ -64,22 +78,18 @@ export function buildTurns(history: UIMessage[]): { turns: Turn[]; images: Blob[
   const images: Blob[] = [];
 
   history.forEach((m, i) => {
-    const text = textOf(m);
-    const pics = m.role === "user" ? imagePartsOf(m) : [];
     if (i === last) {
-      for (const p of pics) {
+      for (const p of m.role === "user" ? imagePartsOf(m) : []) {
         try {
           images.push(dataUrlToBlob(p.url));
         } catch {
           /* unreadable attachment: send the text alone */
         }
       }
-      const note = images.length ? (text ? "" : "(Image attached.)") : "";
-      turns.push({ role: m.role, content: text || note || "(Empty message.)" });
+      turns.push({ role: m.role, content: newestContent(m, images.length) });
       return;
     }
-    const earlier = pics.length ? `\n\n[${pics.length === 1 ? "An image was" : `${pics.length} images were`} attached here.]` : "";
-    const content = `${text}${earlier}`.trim();
+    const content = earlierContent(m);
     if (content) turns.push({ role: m.role, content });
   });
 
@@ -89,6 +99,19 @@ export function buildTurns(history: UIMessage[]): { turns: Turn[]; images: Blob[
     total -= bytes(dropped.content);
   }
   return { turns, images };
+}
+
+/**
+ * How full a conversation is: the bytes of text Claude reads, against the most
+ * one request carries. Past the limit, the oldest messages are left out.
+ */
+export function contextUse(history: UIMessage[]): { used: number; limit: number } {
+  const last = history.length - 1;
+  const used = history.reduce((n, m, i) => {
+    const content = i === last ? newestContent(m, m.role === "user" ? imagePartsOf(m).length : 0) : earlierContent(m);
+    return n + bytes(content);
+  }, 0);
+  return { used, limit: MAX_PROMPT_BYTES };
 }
 
 /**
@@ -218,6 +241,9 @@ export function useAceChat({
         setError(failure);
         setStatus("error");
         throw failure;
+      } finally {
+        // Each request counts against the person's limits.
+        void refreshUsage();
       }
     },
     [commit],

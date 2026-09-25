@@ -89,7 +89,10 @@ function titleFromMessages(messages) {
   return clipped.replace(/[\s.,;:!?—-]+$/u, "").trim() || "New chat";
 }
 
-const fail = (c, status, code, message) => c.json({ error: { code, message } }, status);
+const fail = (c, status, code, message, extra = {}) => c.json({ error: { code, message, ...extra } }, status);
+
+const HOUR_MS = 3_600_000;
+const WEEK_MS = 7 * 24 * HOUR_MS;
 
 export function createApp({ db, env = process.env }) {
   const REQUIRE_SIGNIN = env.ACEMATE_REQUIRE_SIGNIN === "true";
@@ -97,11 +100,22 @@ export function createApp({ db, env = process.env }) {
   const TRUST_PROXY = env.ACEMATE_TRUST_PROXY ? env.ACEMATE_TRUST_PROXY === "true" : Boolean(env.VERCEL);
   const USER_AI_PER_HOUR = Number(env.ACEMATE_AI_LIMIT_PER_HOUR || 60);
   const GUEST_AI_PER_HOUR = Number(env.ACEMATE_GUEST_AI_LIMIT_PER_HOUR || 10);
+  const USER_AI_PER_WEEK = Number(env.ACEMATE_AI_LIMIT_PER_WEEK || 1000);
+  const GUEST_AI_PER_WEEK = Number(env.ACEMATE_GUEST_AI_LIMIT_PER_WEEK || 100);
   const SECURE_COOKIES = env.ACEMATE_SECURE_COOKIES ? env.ACEMATE_SECURE_COOKIES === "true" : undefined;
 
   const auth = createAuth(db, { secureCookies: SECURE_COOKIES });
-  const userAiLimit = createLimiter(db, { name: "ai-user", limit: USER_AI_PER_HOUR, windowMs: 3_600_000 });
-  const guestAiLimit = createLimiter(db, { name: "ai-guest", limit: GUEST_AI_PER_HOUR, windowMs: 3_600_000 });
+  // Every AI request counts against an hourly and a weekly budget.
+  const aiLimits = {
+    user: {
+      hour: createLimiter(db, { name: "ai-user", limit: USER_AI_PER_HOUR, windowMs: HOUR_MS }),
+      week: createLimiter(db, { name: "ai-user-week", limit: USER_AI_PER_WEEK, windowMs: WEEK_MS }),
+    },
+    guest: {
+      hour: createLimiter(db, { name: "ai-guest", limit: GUEST_AI_PER_HOUR, windowMs: HOUR_MS }),
+      week: createLimiter(db, { name: "ai-guest-week", limit: GUEST_AI_PER_WEEK, windowMs: WEEK_MS }),
+    },
+  };
   const authLimit = createLimiter(db, { name: "auth", limit: 20, windowMs: 15 * 60_000 });
 
   function clientIp(c) {
@@ -135,15 +149,33 @@ export function createApp({ db, env = process.env }) {
     return [user, null];
   }
 
-  /** Counts one AI request against the person's (or guest IP's) hourly budget. */
-  async function aiGate(c) {
+  /** Whose budgets an AI request counts against: the person's, or a guest address's. */
+  async function aiBudget(c) {
     const user = await userOf(c);
+    return user ? { user, key: user.id, limits: aiLimits.user } : { user: null, key: clientIp(c), limits: aiLimits.guest };
+  }
+
+  /** Counts one AI request against the hourly and weekly budgets. */
+  async function aiGate(c) {
+    const { user, key, limits } = await aiBudget(c);
     if (!user && REQUIRE_SIGNIN) return fail(c, 401, "sign_in_required", "Sign in to use AceMate.");
-    const wait = user ? await userAiLimit(user.id) : await guestAiLimit(clientIp(c));
-    if (wait) {
+    const refuse = (window, wait) => {
       c.header("Retry-After", String(wait));
-      return fail(c, 429, "rate_limited", user ? "Hourly limit reached." : "Guest limit reached. Sign in for more.");
+      const message =
+        window === "week"
+          ? user ? "Weekly limit reached." : "Guest weekly limit reached. Sign in for more."
+          : user ? "Hourly limit reached." : "Guest limit reached. Sign in for more.";
+      return fail(c, 429, "rate_limited", message, { limit: window, retryAfter: wait, ...(user ? {} : { guest: true }) });
+    };
+    // A used-up week is refused before anything is counted.
+    const week = await limits.week.peek(key);
+    if (week.resetAt && week.used >= limits.week.limit) {
+      return refuse("week", Math.max(1, Math.ceil((week.resetAt - Date.now()) / 1000)));
     }
+    const hourWait = await limits.hour.take(key);
+    if (hourWait) return refuse("hour", hourWait);
+    const weekWait = await limits.week.take(key);
+    if (weekWait) return refuse("week", weekWait);
     return null;
   }
 
@@ -190,10 +222,32 @@ export function createApp({ db, env = process.env }) {
     }),
   );
 
+  // How much of their AI budgets the caller has used, for the usage panel.
+  app.get("/api/usage", async (c) => {
+    const { user, key, limits } = await aiBudget(c);
+    const report = async (id, limiter) => {
+      const { used, resetAt } = await limiter.peek(key);
+      return {
+        id,
+        used: Math.min(used, limiter.limit),
+        limit: limiter.limit,
+        windowSeconds: limiter.windowMs / 1000,
+        resetsAt: resetAt ? new Date(resetAt).toISOString() : null,
+      };
+    };
+    c.header("Cache-Control", "no-store");
+    return c.json({
+      plan: user ? "account" : "guest",
+      limits: [await report("hour", limits.hour), await report("week", limits.week)],
+      // What signing in would give a guest.
+      ...(user ? {} : { accountLimits: { hour: USER_AI_PER_HOUR, week: USER_AI_PER_WEEK } }),
+    });
+  });
+
   // ─── Accounts ──────────────────────────────────────────────────────────────
 
   async function authRoute(c, action) {
-    if (await authLimit(clientIp(c))) return fail(c, 429, "rate_limited", "Too many attempts. Try again in a few minutes.");
+    if (await authLimit.take(clientIp(c))) return fail(c, 429, "rate_limited", "Too many attempts. Try again in a few minutes.");
     const body = await c.req.json().catch(() => ({}));
     const result = await action(c, body.email, body.password);
     if (result.error) return fail(c, 400, "auth_failed", result.error);

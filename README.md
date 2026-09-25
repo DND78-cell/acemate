@@ -88,6 +88,8 @@ All in `.env` (see `.env.example`):
 | `ACEMATE_FALLBACKS` | `on` | Re-run requests Claude's safety checks decline on Anthropic's recommended fallback model |
 | `ACEMATE_AI_LIMIT_PER_HOUR` | `60` | AI requests per signed-in person per hour |
 | `ACEMATE_GUEST_AI_LIMIT_PER_HOUR` | `10` | AI requests per guest (per IP address) per hour |
+| `ACEMATE_AI_LIMIT_PER_WEEK` | `1000` | AI requests per signed-in person per week |
+| `ACEMATE_GUEST_AI_LIMIT_PER_WEEK` | `100` | AI requests per guest (per IP address) per week |
 | `ACEMATE_REQUIRE_SIGNIN` | `false` | Require an account before chatting |
 | `ACEMATE_TRUST_PROXY` | `false` (`true` on Vercel) | Trust `X-Forwarded-For` (set `true` behind a proxy) |
 | `DATABASE_URL` | — | A Postgres (Neon) address. When set, it's used instead of the SQLite file |
@@ -127,8 +129,9 @@ assemble.mjs   Inlines the artifact build into one claude.ai page
   request forgery.
 - Accounts aren't email-verified and there's no password reset yet. Add an email
   provider before relying on either.
-- Hourly limits are counted in the database, so they hold across restarts and
-  across Vercel's many function instances.
+- Hourly and weekly limits are counted in the database, so they hold across
+  restarts and across Vercel's many function instances. People can see their
+  use in the usage panel (the ring by the model picker) and in Settings → Usage.
 
 ## Credits
 

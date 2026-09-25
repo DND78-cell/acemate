@@ -8,11 +8,24 @@ import type {
   ImageLimits,
   NoteSummary,
   Platform,
+  UsageReport,
 } from "@/platform/types";
 
 /** AceMate as a standalone website, backed by its own server under /api. */
 
-type ApiError = { error?: { code?: string; message?: string } };
+type ApiError = { error?: { code?: string; message?: string; limit?: AiFailure["limit"]; retryAfter?: number; guest?: boolean } };
+
+/** An AiFailure from an error response body. */
+function failureOf(body: ApiError | null, status: number): AiFailure {
+  const e = body?.error;
+  return {
+    code: e?.code ?? statusCode(status),
+    message: e?.message,
+    ...(e?.limit ? { limit: e.limit } : {}),
+    ...(typeof e?.retryAfter === "number" ? { retryAfter: e.retryAfter } : {}),
+    ...(e?.guest ? { guest: true } : {}),
+  };
+}
 
 /** Error code for a failed response whose body didn't say. */
 const statusCode = (status: number) => (status === 429 ? "rate_limited" : status === 413 ? "too_large" : "upstream_error");
@@ -35,10 +48,7 @@ async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   }
   if (!res.ok) {
     const body = (await res.json().catch(() => null)) as ApiError | null;
-    throw {
-      code: body?.error?.code ?? statusCode(res.status),
-      message: body?.error?.message,
-    } satisfies AiFailure;
+    throw failureOf(body, res.status);
   }
   return (await res.json()) as T;
 }
@@ -177,10 +187,7 @@ export const webPlatform: Platform = {
     }
     if (!res.ok || !res.body) {
       const body = (await res.json().catch(() => null)) as ApiError | null;
-      throw {
-        code: body?.error?.code ?? statusCode(res.status),
-        message: body?.error?.message,
-      } satisfies AiFailure;
+      throw failureOf(body, res.status);
     }
 
     const reader = res.body.getReader();
@@ -236,6 +243,14 @@ export const webPlatform: Platform = {
   async imageLimits() {
     const me = await loadMe();
     return me?.images ?? null;
+  },
+
+  async usage() {
+    try {
+      return await api<UsageReport>("/api/usage");
+    } catch {
+      return null;
+    }
   },
 
   async viewer() {

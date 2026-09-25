@@ -5,12 +5,13 @@ import { AceMateLogo } from "@/components/AceMateLogo";
 import { useShell } from "@/components/AppShell";
 import { TopBar } from "@/components/TopBar";
 import { Composer, ModeToggle, ModelMenu } from "@/components/Composer";
+import { UsageMenu } from "@/components/UsageMenu";
 import { CornerButton } from "@/components/ui/corner-button";
 import { cn } from "@/lib/utils";
 import { ChatMessage } from "@/components/ChatMessage";
 import { messageText, reasoningText, ThinkingActivity } from "@/components/ai/AiResponseActivity";
 import { saveChat, loadChat } from "@/lib/persistence";
-import { newId, useAceChat, type MessagePart, type UIMessage } from "@/lib/chat";
+import { contextUse, newId, useAceChat, type MessagePart, type UIMessage } from "@/lib/chat";
 import { currentChat, onChatRequest, rememberChat, takeChatRequest, type ChatRequest } from "@/lib/chat-nav";
 import { sampleErrorCopy } from "@/lib/claude";
 import { pickThought } from "@/lib/thoughts";
@@ -422,13 +423,16 @@ export function ChatPage() {
           </>
         }
         trailing={
-          <ModelMenu
-            model={settings.model}
-            onModel={(v) => updateSettings({ model: v })}
-            effort={settings.effort}
-            onEffort={(v) => updateSettings({ effort: v })}
-            placement={placement}
-          />
+          <>
+            <ModelMenu
+              model={settings.model}
+              onModel={(v) => updateSettings({ model: v })}
+              effort={settings.effort}
+              onEffort={(v) => updateSettings({ effort: v })}
+              placement={placement}
+            />
+            <UsageMenu context={contextUse(messages)} placement={placement} />
+          </>
         }
       />
     </>

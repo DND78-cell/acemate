@@ -3,12 +3,13 @@ import { AppWindow, Check, Code2, Copy, Download, Eye, RotateCw } from "lucide-r
 import { AceMateLogo } from "@/components/AceMateLogo";
 import { TopBar } from "@/components/TopBar";
 import { Composer, ModeToggle, ModelMenu } from "@/components/Composer";
+import { UsageMenu } from "@/components/UsageMenu";
 import { ChatMessage } from "@/components/ChatMessage";
 import { Markdown } from "@/components/Markdown";
 import { messageText, reasoningText, ThinkingActivity } from "@/components/ai/AiResponseActivity";
 import { AceMateOrb } from "@/components/ai/AceMateOrb";
 import { useSettings, TEXT_SIZE_PX, type ModelId } from "@/lib/settings";
-import { newId, useAceChat } from "@/lib/chat";
+import { contextUse, newId, useAceChat } from "@/lib/chat";
 import { sampleErrorCopy } from "@/lib/claude";
 import { platform } from "@/platform";
 import { chatInstructions, tierFor } from "@/lib/prompts";
@@ -350,7 +351,12 @@ export function CodePage() {
             canSend={canSend}
             placeholder="Describe what to build…"
             inputRef={inputRef}
-            trailing={<ModelMenu model={model} onModel={setModel} />}
+            trailing={
+              <>
+                <ModelMenu model={model} onModel={setModel} />
+                <UsageMenu context={contextUse(messages)} />
+              </>
+            }
           />
           <p className="py-2 text-center text-[11.5px] text-[var(--fg-faint)]">
             AceMate can make mistakes — double-check important answers.

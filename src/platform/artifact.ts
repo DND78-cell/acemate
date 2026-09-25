@@ -49,6 +49,8 @@ export const artifactPlatform: Platform = {
   },
 
   imageLimits: getImageLimits,
+  // Limits here are the viewer's claude.ai plan's, which a page can't read.
+  usage: async () => null,
 
   viewer: loadViewer,
   onViewerChange: () => () => undefined,

@@ -1,8 +1,9 @@
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { TopBar, IconButton } from "@/components/TopBar";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
   ArrowLeft,
+  ChartColumn,
   ChevronRight,
   MessageSquareText,
   Trash2,
@@ -13,9 +14,16 @@ import {
   Gauge,
 } from "lucide-react";
 import { AceMateLogo } from "@/components/AceMateLogo";
+import { LIMIT_LABEL, UsageBar, resetText, useNow } from "@/components/UsageMenu";
+import { MAX_PROMPT_BYTES } from "@/lib/chat";
+import { refreshUsage, useUsage } from "@/lib/usage";
+import { liveLimit, percent } from "@/lib/usage-format";
+import { IS_WEB } from "@/platform";
 import {
   useSettings,
   requestClearConversation,
+  settingsViewRequested,
+  clearSettingsViewRequest,
   MODEL_OPTIONS,
   EFFORT_OPTIONS,
   type ResponseStyle,
@@ -25,7 +33,7 @@ import {
   type EffortMode,
 } from "@/lib/settings";
 
-type View = "root" | "response-style" | "theme" | "text-size" | "about" | "model" | "effort";
+type View = "root" | "response-style" | "theme" | "text-size" | "about" | "model" | "effort" | "usage";
 
 
 const RESPONSE_STYLE_OPTIONS: {
@@ -52,8 +60,14 @@ const TEXT_SIZE_OPTIONS: { value: TextSize; label: string; desc: string }[] = [
 ];
 
 export function SettingsPage() {
-  const [view, setView] = useState<View>("root");
+  // The usage panel's "See detailed breakdown" opens straight on Usage.
+  const [view, setView] = useState<View>(() => settingsViewRequested() ?? "root");
+  useEffect(() => clearSettingsViewRequest(), []);
   const [settings, update] = useSettings();
+  const { report } = useUsage();
+  const usageValue = report
+    ? `${Math.max(...report.limits.map((l) => percent(liveLimit(l).used, l.limit)))}% used`
+    : undefined;
   const [confirmClear, setConfirmClear] = useState(false);
   const navigate = useNavigate();
 
@@ -129,6 +143,14 @@ export function SettingsPage() {
 
 
 
+          <SectionLabel>Usage</SectionLabel>
+          <Row
+            icon={<ChartColumn className="h-[18px] w-[18px]" strokeWidth={1.75} />}
+            label="Usage"
+            value={usageValue}
+            onClick={() => setView("usage")}
+          />
+
           <SectionLabel>Appearance</SectionLabel>
           <Row
             icon={<Palette className="h-[18px] w-[18px]" strokeWidth={1.75} />}
@@ -193,6 +215,7 @@ export function SettingsPage() {
         />
       )}
       {view === "about" && <AboutView />}
+      {view === "usage" && <UsageView />}
 
       {/* Confirm clear */}
       {confirmClear && (
@@ -351,6 +374,75 @@ function ChoiceView<T extends string>({
           );
         })}
       </div>
+    </>
+  );
+}
+
+function UsageView() {
+  const { report, loaded } = useUsage();
+  const now = useNow();
+  useEffect(() => {
+    void refreshUsage();
+  }, []);
+  const limits = (report?.limits ?? []).map((l) => liveLimit(l, now));
+
+  return (
+    <>
+      <h1 className="font-serif px-1 pt-4 pb-2 text-[34px] font-normal leading-tight text-[var(--fg)]">Usage</h1>
+      <p className="px-1 text-[14px] leading-relaxed text-[var(--fg-muted)]">
+        Every message, Chapter Notes run, study companion question and code build counts as one request.
+      </p>
+
+      {!IS_WEB ? (
+        <p className="mt-5 px-1 text-[14px] leading-relaxed text-[var(--fg-muted)]">
+          On claude.ai, AceMate runs on your claude.ai plan, so that plan's usage limits apply here.
+        </p>
+      ) : !report ? (
+        <p className="mt-5 px-1 text-[14px] text-[var(--fg-muted)]">
+          {loaded ? "Couldn't load your limits. Try again in a moment." : "Checking your limits…"}
+        </p>
+      ) : (
+        <>
+          <SectionLabel>{report.plan === "guest" ? "Guest limits" : "Your limits"}</SectionLabel>
+          <div className="flex flex-col gap-2.5">
+            {limits.map((l) => {
+              const pct = percent(l.used, l.limit);
+              return (
+                <div key={l.id} className="rounded-xl border border-[var(--line)] bg-[var(--surface)] px-4 py-3.5">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <span className="text-[15px] text-[var(--fg)]">{LIMIT_LABEL[l.id]}</span>
+                    <span className="text-[13px] tabular-nums text-[var(--fg-muted)]">{pct}%</span>
+                  </div>
+                  <UsageBar value={pct} label={LIMIT_LABEL[l.id]} />
+                  <div className="mt-2 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 text-[13px] text-[var(--fg-muted)]">
+                    <span className="tabular-nums">
+                      {l.used.toLocaleString()} of {l.limit.toLocaleString()} requests
+                    </span>
+                    <span>{resetText(l, now)}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          {report.plan === "guest" && report.accountLimits && (
+            <p className="mt-4 px-1 text-[14px] leading-relaxed text-[var(--fg-muted)]">
+              Guests are counted by network address.{" "}
+              <Link to="/auth" className="text-[var(--fg)] underline underline-offset-2">
+                Sign in
+              </Link>{" "}
+              for {report.accountLimits.hour.toLocaleString()} requests an hour and{" "}
+              {report.accountLimits.week.toLocaleString()} a week.
+            </p>
+          )}
+        </>
+      )}
+
+      <SectionLabel>Context window</SectionLabel>
+      <p className="px-3 text-[14px] leading-relaxed text-[var(--fg-muted)]">
+        Each chat can carry about {MAX_PROMPT_BYTES.toLocaleString()} characters of text to AceMate. As a chat grows
+        past that, AceMate leaves out its oldest messages, so it may forget how the chat began. The ring beside the
+        message box shows how full the current chat is. Start a new chat to begin fresh.
+      </p>
     </>
   );
 }

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { ChevronDown, ChevronLeft, ChevronRight, ImagePlus, Type, X } from "lucide-react";
 import { TopBar } from "@/components/TopBar";
 import { Composer } from "@/components/Composer";
+import { UsageMenu } from "@/components/UsageMenu";
 import { ChatMessage } from "@/components/ChatMessage";
 import { messageText, reasoningText, ThinkingActivity } from "@/components/ai/AiResponseActivity";
 import { useAuth } from "@/hooks/use-auth";
@@ -12,7 +13,7 @@ import {
   type ActivitySession,
 } from "@/lib/persistence";
 import { useSettings, TEXT_SIZE_PX } from "@/lib/settings";
-import { newId, useAceChat } from "@/lib/chat";
+import { contextUse, newId, useAceChat } from "@/lib/chat";
 import { dataUrlToBlob, sampleErrorCopy } from "@/lib/claude";
 import { getImageLimits, IS_WEB } from "@/platform";
 import type { ImageLimits } from "@/platform/types";
@@ -508,6 +509,7 @@ export function CompanionPage() {
             canSend={!!input.trim() && !isLoading}
             placeholder="Ask about your material…"
             inputRef={inputRef}
+            trailing={<UsageMenu context={contextUse(messages)} />}
           />
           <p className="py-2 text-center text-[11.5px] text-[var(--fg-faint)]">
             AceMate can make mistakes — double-check important answers.
